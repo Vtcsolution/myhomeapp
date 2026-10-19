@@ -8,7 +8,14 @@ import type {
   TicketStatus,
   WalletTransactionType,
 } from '../types/engagement';
-import type { DocumentStatus, MembershipTier, TechnicianStatus, VendorStatus } from '../types/user';
+import type {
+  DocumentStatus,
+  MembershipTier,
+  SpokenLanguage,
+  TechnicianDocumentType,
+  TechnicianStatus,
+  VendorStatus,
+} from '../types/user';
 
 export type StatusTone = 'neutral' | 'info' | 'accent' | 'success' | 'warning' | 'danger';
 
@@ -54,6 +61,30 @@ export const technicianStatusLabels: Record<TechnicianStatus, LocalizedText> = {
 };
 
 export const vendorStatusLabels: Record<VendorStatus, LocalizedText> = technicianStatusLabels;
+
+export const documentTypeLabels: Record<TechnicianDocumentType, LocalizedText> = {
+  civil_id: { en: 'Civil ID', ar: 'البطاقة المدنية' },
+  trade_license: { en: 'Trade licence', ar: 'الرخصة التجارية' },
+  certificate: { en: 'Professional certificate', ar: 'الشهادة المهنية' },
+  insurance: { en: 'Liability insurance', ar: 'تأمين المسؤولية' },
+};
+
+export const documentStatusTone: Record<DocumentStatus, StatusTone> = {
+  verified: 'success',
+  pending: 'info',
+  rejected: 'danger',
+  expired: 'warning',
+};
+
+export const spokenLanguageLabels: Record<SpokenLanguage, LocalizedText> = {
+  en: { en: 'English', ar: 'الإنجليزية' },
+  ar: { en: 'Arabic', ar: 'العربية' },
+  hi: { en: 'Hindi', ar: 'الهندية' },
+  ur: { en: 'Urdu', ar: 'الأردية' },
+  ml: { en: 'Malayalam', ar: 'المالايالامية' },
+  tl: { en: 'Tagalog', ar: 'التاغالوغية' },
+  bn: { en: 'Bengali', ar: 'البنغالية' },
+};
 
 export const documentStatusLabels: Record<DocumentStatus, LocalizedText> = {
   verified: { en: 'Verified', ar: 'موثّق' },

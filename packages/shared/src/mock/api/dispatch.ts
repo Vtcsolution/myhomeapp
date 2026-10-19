@@ -4,6 +4,7 @@ import { isTechnicianAvailable, isTechnicianFree } from '../../domain/schedule';
 import { addMinutes, toMs } from '../../domain/time';
 import { formatMoney } from '../../format/money';
 import type { Booking, ID, Technician, UserRole } from '../../types';
+import { DEMO_ACCOUNTS } from '../data/people';
 import { findService, type MockContext, notify, simulatedReference, touch } from './context';
 
 /** Active technicians who cover the booking's category and governorate. */
@@ -133,9 +134,12 @@ export function confirmBooking(
 /** Offers a pending booking to up to `limit` free, eligible technicians. */
 export function offerToTechnicians(ctx: MockContext, booking: Booking, limit = 3): void {
   const service = findService(ctx, booking.serviceId);
+  // Highest rated first — except that the demo professional, when eligible and
+  // free, is always included so both sides of a single-device demo connect.
+  const isDemo = (t: Technician) => t.phone === DEMO_ACCOUNTS.technicianPhone;
   const candidates = eligibleTechnicians(ctx, booking.categoryId, booking.address.areaId)
     .filter((t) => !booking.declinedBy.includes(t.id) && canTake(ctx, t, booking))
-    .sort((a, b) => b.rating - a.rating)
+    .sort((a, b) => Number(isDemo(b)) - Number(isDemo(a)) || b.rating - a.rating)
     .slice(0, limit);
   booking.offeredTo = candidates.map((t) => t.id);
   for (const t of candidates) {
@@ -246,13 +250,23 @@ export function settlePayment(ctx: MockContext, booking: Booking): void {
   booking.payment.reference ??= simulatedReference();
 }
 
+/** How long the demo professional's requests wait for a manual answer. */
+export const DEMO_TECHNICIAN_GRACE_SEC = 180;
+
 /**
  * Demo simulation: bookings created through the API are accepted by the first
  * free offered technician after `delaySec`, so a single-device demo shows the
  * full flow without someone acting as the technician.
  */
-export function runAutoConfirm(ctx: MockContext, delaySec: number | null): boolean {
+export function runAutoConfirm(
+  ctx: MockContext,
+  delaySec: number | null,
+  demoTechnicianGraceSec = DEMO_TECHNICIAN_GRACE_SEC,
+): boolean {
   if (delaySec === null || !ctx.state.autoConfirmQueue.length) return false;
+  const demoTechnician = ctx.state.technicians.find(
+    (t) => t.phone === DEMO_ACCOUNTS.technicianPhone,
+  );
   let changed = false;
   for (const id of [...ctx.state.autoConfirmQueue]) {
     const booking = ctx.state.bookings.find((b) => b.id === id);
@@ -261,7 +275,13 @@ export function runAutoConfirm(ctx: MockContext, delaySec: number | null): boole
       changed = true;
       continue;
     }
-    if (ctx.now() - toMs(booking.createdAt) < delaySec * 1000) continue;
+    // When the demo professional was offered the job, leave time to switch to the
+    // professional app and accept it by hand before the simulation steps in.
+    const wait =
+      demoTechnician && booking.offeredTo.includes(demoTechnician.id)
+        ? Math.max(delaySec, demoTechnicianGraceSec)
+        : delaySec;
+    if (ctx.now() - toMs(booking.createdAt) < wait * 1000) continue;
     const technician = booking.offeredTo
       .map((tid) => ctx.state.technicians.find((t) => t.id === tid))
       .find((t): t is Technician => !!t && t.status === 'active' && canTake(ctx, t, booking));

@@ -38,6 +38,7 @@ import type {
   WalletTransaction,
 } from '../types/engagement';
 import type { Address, Area, Governorate, GovernorateId } from '../types/geo';
+import type { MediaKey } from '../types/media';
 import type {
   AdminUser,
   Customer,
@@ -289,10 +290,18 @@ export interface TechnicianProfileView extends Technician {
   vendor: Pick<Vendor, 'id' | 'name'> | null;
 }
 
+/** A booking as the professional sees it, with what the job pays them. */
+export interface JobView extends BookingView {
+  /** Platform or vendor commission on the current total. */
+  commission: Fils;
+  /** What the professional earns for the job at its current total (simulated). */
+  technicianNet: Fils;
+}
+
 export interface TechnicianDashboard {
   isOnline: boolean;
-  todayJobs: BookingView[];
-  nextJob: BookingView | null;
+  todayJobs: JobView[];
+  nextJob: JobView | null;
   pendingOffers: number;
   earningsToday: Fils;
   earningsWeek: Fils;
@@ -301,7 +310,18 @@ export interface TechnicianDashboard {
   acceptanceRate: number;
 }
 
-export type EarningsRange = 'week' | 'month' | 'quarter';
+export type EarningsRange = 'today' | 'week' | 'month' | 'quarter';
+
+/** One completed job in an earnings period. */
+export interface EarningsEntry {
+  bookingId: ID;
+  reference: string;
+  serviceName: LocalizedText;
+  completedAt: ISODateTime;
+  gross: Fils;
+  commission: Fils;
+  net: Fils;
+}
 
 export interface EarningsView {
   range: EarningsRange;
@@ -314,6 +334,8 @@ export interface EarningsView {
   /** `vendor`: the technician is paid by their company, not by the platform. */
   paidBy: 'platform' | 'vendor';
   payouts: Payout[];
+  /** Completed jobs in the period, newest first. */
+  entries: EarningsEntry[];
 }
 
 export type JobScope = 'today' | 'upcoming' | 'completed' | 'all';
@@ -322,14 +344,19 @@ export interface TechnicianApi {
   getProfile(): Promise<TechnicianProfileView>;
   setOnline(online: boolean): Promise<TechnicianProfileView>;
   getDashboard(): Promise<TechnicianDashboard>;
-  listOffers(): Promise<BookingView[]>;
-  acceptOffer(bookingId: ID): Promise<BookingView>;
+  listOffers(): Promise<JobView[]>;
+  acceptOffer(bookingId: ID): Promise<JobView>;
   declineOffer(bookingId: ID, reason?: string): Promise<void>;
-  listJobs(scope?: JobScope): Promise<BookingView[]>;
-  getJob(id: ID): Promise<BookingView>;
+  listJobs(scope?: JobScope): Promise<JobView[]>;
+  getJob(id: ID): Promise<JobView>;
   /** Moves the job to the next status (confirmed → on_the_way → … → completed). */
-  advanceJob(id: ID): Promise<BookingView>;
-  addExtraCharge(id: ID, input: { description: string; amount: Fils }): Promise<BookingView>;
+  advanceJob(id: ID): Promise<JobView>;
+  addExtraCharge(id: ID, input: { description: string; amount: Fils }): Promise<JobView>;
+  addWorkNote(id: ID, text: string): Promise<JobView>;
+  /** Attaches a sample photo (demo: no camera or upload is involved). */
+  addWorkPhoto(id: ID, input: { media: MediaKey; stage: 'before' | 'after' }): Promise<JobView>;
+  /** Simulated re-submission of an expired or rejected document for review. */
+  resubmitDocument(documentId: ID): Promise<TechnicianProfileView>;
   getEarnings(range?: EarningsRange): Promise<EarningsView>;
   getAvailability(): Promise<TechnicianAvailability>;
   updateAvailability(availability: TechnicianAvailability): Promise<TechnicianAvailability>;
@@ -351,6 +378,33 @@ export interface AdminDashboard {
     averageRating: number;
     completionRate: number;
     cancellationRate: number;
+    /** Directory sizes. */
+    customers: number;
+    technicians: number;
+    vendors: number;
+    /** All bookings ever made (any status). */
+    bookingsTotal: number;
+    /** Confirmed or under way right now. */
+    activeBookings: number;
+    /** Platform commission on this month's completed bookings (simulated). */
+    platformFeesMonth: number;
+    /** Active technicians currently on a job (on the way, arrived or working). */
+    techniciansOnJob: number;
+    reviewsCount: number;
+    /** Share of published reviews rated 4 or 5 (0–1). */
+    satisfactionRate: number;
+  };
+  /** Operational counts that need attention, all derived from current data. */
+  alerts: {
+    /** Pending bookings starting within 24 hours with nobody assigned. */
+    unassignedSoon: number;
+    pendingExtraCharges: number;
+    openTickets: number;
+    flaggedReviews: number;
+    /** Documents expired or expiring within 30 days for active technicians. */
+    documentsExpiring: number;
+    /** Payouts for finished periods that are not paid yet. */
+    payoutsDue: number;
   };
   revenueSeries: { date: LocalDate; revenue: Fils; bookings: number }[];
   byCategory: { categoryId: ID; name: LocalizedText; bookings: number; revenue: Fils }[];
@@ -421,6 +475,19 @@ export type VendorInput = Pick<
 
 export type CouponInput = Omit<Coupon, 'id' | 'usedCount'> & { id?: ID };
 
+export interface ServicePricingInput {
+  basePrice?: Fils;
+  minUnits?: number;
+  maxUnits?: number;
+  /**
+   * Option choice id → price difference (fils). May be negative (a cheaper
+   * variant) as long as base price + difference stays above zero.
+   */
+  optionPrices?: Record<ID, Fils>;
+  /** Add-on id → price (fils, more than 0). */
+  addOnPrices?: Record<ID, Fils>;
+}
+
 export interface AdminApi {
   getDashboard(): Promise<AdminDashboard>;
   getProfile(): Promise<AdminUser>;
@@ -470,9 +537,23 @@ export interface AdminApi {
   updateService(
     id: ID,
     patch: Partial<
-      Pick<Service, 'name' | 'shortDescription' | 'basePrice' | 'isActive' | 'isPopular'>
+      Pick<
+        Service,
+        | 'name'
+        | 'shortDescription'
+        | 'description'
+        | 'image'
+        | 'basePrice'
+        | 'isActive'
+        | 'isPopular'
+      >
     >,
   ): Promise<Service>;
+  /**
+   * Prices of a service: base price, unit limits, option price differences and
+   * add-on prices. Existing bookings keep the price they were quoted.
+   */
+  updateServicePricing(id: ID, input: ServicePricingInput): Promise<Service>;
 
   listCoupons(): Promise<Coupon[]>;
   saveCoupon(input: CouponInput): Promise<Coupon>;
@@ -481,6 +562,8 @@ export interface AdminApi {
   listReviews(query?: {
     status?: ReviewStatus;
     maxRating?: number;
+    customerId?: ID;
+    technicianId?: ID;
     page?: number;
     pageSize?: number;
   }): Promise<Paginated<ReviewView>>;
@@ -492,7 +575,11 @@ export interface AdminApi {
   }): Promise<PayoutRow[]>;
   markPayoutPaid(id: ID): Promise<PayoutRow>;
 
-  listTickets(query?: { status?: TicketStatus }): Promise<TicketRow[]>;
+  listTickets(query?: {
+    status?: TicketStatus;
+    requesterId?: ID;
+    bookingId?: ID;
+  }): Promise<TicketRow[]>;
   getTicket(id: ID): Promise<TicketRow>;
   replyToTicket(id: ID, text: string): Promise<TicketRow>;
   setTicketStatus(id: ID, status: TicketStatus): Promise<TicketRow>;

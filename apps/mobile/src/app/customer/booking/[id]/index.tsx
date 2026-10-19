@@ -20,7 +20,12 @@ import {
 } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { ExtraChargesCard, PaymentCard, ReviewCard } from '@/components/booking/BookingSections';
+import {
+  ExtraChargesCard,
+  PaymentCard,
+  ReviewCard,
+  WorkRecordCard,
+} from '@/components/booking/BookingSections';
 import { CancelSheet } from '@/components/booking/CancelSheet';
 import { LiveBookingCard } from '@/components/booking/LiveBookingCard';
 import { StatusTimeline } from '@/components/booking/StatusTimeline';
@@ -184,6 +189,7 @@ export default function BookingDetailsScreen() {
       ) : null}
 
       <ExtraChargesCard booking={b} />
+      <WorkRecordCard booking={b} />
 
       {b.status === 'completed' ? <ReviewCard booking={b} warrantyUntil={warrantyUntil} /> : null}
 

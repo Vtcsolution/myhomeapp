@@ -1,13 +1,17 @@
+import { router } from 'expo-router';
 import { NotificationsScreen } from '@/components/notifications/NotificationsList';
-import { useNextStage } from '@/hooks/useNextStage';
+import { notificationTarget } from '@/lib/notifications';
+import { proRoutes } from '@/navigation/routes';
 
 export default function ProNotifications() {
-  const nextStage = useNextStage();
   return (
     <NotificationsScreen
       fallbackHref="/pro"
+      onOpenSettings={() => router.push(proRoutes.notificationSettings)}
       onOpen={(notification) => {
-        if (notification.bookingId) nextStage('features.jobDetails', 6);
+        const target = notificationTarget(notification);
+        if (target?.kind === 'chat') router.push(proRoutes.chat(target.id));
+        else if (target?.kind === 'booking') router.push(proRoutes.job(target.id));
       }}
     />
   );

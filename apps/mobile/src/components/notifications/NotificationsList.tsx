@@ -212,7 +212,8 @@ export function NotificationsScreen({
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
+  // Keeps both filter labels readable on narrow screens; the action wraps below.
+  flex: { flex: 1, minWidth: 220 },
   toolbar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' },
   list: { gap: space.md },
   row: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start' },

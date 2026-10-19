@@ -1,5 +1,6 @@
 import type { Fils, ID, ISODateTime, LocalizedText } from './common';
 import type { Address } from './geo';
+import type { MediaKey } from './media';
 import type { UserRole } from './user';
 
 /**
@@ -97,6 +98,24 @@ export interface Cancellation {
   refundAmount: Fils;
 }
 
+/** A note the professional records while doing the job (visible to the customer). */
+export interface WorkNote {
+  id: ID;
+  text: string;
+  createdAt: ISODateTime;
+}
+
+/**
+ * A job photo. In this demo the professional picks from bundled sample images —
+ * nothing is captured or uploaded.
+ */
+export interface WorkPhoto {
+  id: ID;
+  media: MediaKey;
+  stage: 'before' | 'after';
+  createdAt: ISODateTime;
+}
+
 export interface Booking {
   id: ID;
   /** Human-friendly reference shown to customers, e.g. `MH-48213`. */
@@ -122,6 +141,9 @@ export interface Booking {
   customerNotes?: string;
   timeline: TimelineEvent[];
   cancellation?: Cancellation;
+  /** Recorded by the professional during the visit (absent in older saved states). */
+  workNotes?: WorkNote[];
+  workPhotos?: WorkPhoto[];
   reviewId?: ID;
   createdAt: ISODateTime;
   updatedAt: ISODateTime;

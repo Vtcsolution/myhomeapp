@@ -1,9 +1,9 @@
 import {
-  type BookingView,
   bookingStatusLabels,
   bookingStatusTone,
   getArea,
   isLiveStatus,
+  type JobView,
 } from '@myhome/shared';
 import { Clock, MapPin } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
@@ -17,13 +17,13 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { radius, space } from '@/theme/tokens';
 
 export interface JobCardProps {
-  job: BookingView;
+  job: JobView;
   onPress: () => void;
   /** Highlight as the next/current job. */
   featured?: boolean;
 }
 
-/** A technician's view of a booking: when, where, what and what it pays. */
+/** A professional's view of a booking: when, where, what and what it pays them. */
 export function JobCard({ job, onPress, featured }: JobCardProps) {
   const { colors } = useTheme();
   const { t, locale } = useLocale();
@@ -89,7 +89,7 @@ export function JobCard({ job, onPress, featured }: JobCardProps) {
           variant="captionStrong"
           style={{ color: featured ? colors.champagne : colors.accent }}
         >
-          {t('pro.jobValue', { amount: f.money(job.price.total) })}
+          {t('pro.youEarn', { amount: f.money(job.technicianNet) })}
         </Text>
         <Text variant="caption" style={{ color: soft }}>
           {f.duration(job.price.estimatedDurationMin)}

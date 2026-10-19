@@ -1,10 +1,12 @@
 import type { EarningsRange, PayoutStatus, StatusTone } from '@myhome/shared';
-import { Building2, Receipt } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { Building2, CircleCheck, Receipt } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { EarningsBars } from '@/components/pro/EarningsBars';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { DemoNotice } from '@/components/ui/DemoNotice';
 import { ScreenHeader, SectionHeader } from '@/components/ui/Headers';
 import { ListGroup, ListRow } from '@/components/ui/ListRow';
 import { Screen } from '@/components/ui/Screen';
@@ -14,6 +16,7 @@ import { EmptyState, ErrorState } from '@/components/ui/StateViews';
 import { Text } from '@/components/ui/Text';
 import { useEarnings, useTechnicianProfile } from '@/data/queries';
 import { useFormat } from '@/hooks/useFormat';
+import { proRoutes } from '@/navigation/routes';
 import { useLocale } from '@/providers/LocaleProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { radius, space } from '@/theme/tokens';
@@ -24,6 +27,7 @@ const payoutTone: Record<PayoutStatus, StatusTone> = {
   paid: 'success',
 };
 
+/** Earnings (simulated): period summary, daily chart, completed jobs and payouts. */
 export default function ProEarnings() {
   const { t } = useLocale();
   const { colors } = useTheme();
@@ -44,11 +48,13 @@ export default function ProEarnings() {
         value={range}
         onChange={setRange}
         segments={[
+          { value: 'today', label: t('earnings.today') },
           { value: 'week', label: t('earnings.week') },
           { value: 'month', label: t('earnings.month') },
           { value: 'quarter', label: t('earnings.quarter') },
         ]}
       />
+      <DemoNotice text={t('earnings.demoNote')} />
 
       {earnings.isPending ? (
         <Skeleton height={260} rounded={radius.xl} />
@@ -83,12 +89,41 @@ export default function ProEarnings() {
             </View>
           </Card>
 
-          <Card>
-            <Text variant="captionStrong" tone="secondary" style={styles.chartTitle}>
-              {t('earnings.daily')}
-            </Text>
-            <EarningsBars series={data.series} />
-          </Card>
+          {range !== 'today' ? (
+            <Card>
+              <Text variant="captionStrong" tone="secondary">
+                {t('earnings.daily')}
+              </Text>
+              <Text variant="caption" tone="muted" style={styles.chartHint}>
+                {t('earnings.tapBar')}
+              </Text>
+              <EarningsBars key={range} series={data.series} />
+            </Card>
+          ) : null}
+
+          <View style={styles.section}>
+            <SectionHeader title={t('earnings.completedJobs')} />
+            {data.entries.length === 0 ? (
+              <EmptyState icon={CircleCheck} title={t('earnings.noJobs')} />
+            ) : (
+              <ListGroup>
+                {data.entries.slice(0, 20).map((entry) => (
+                  <ListRow
+                    key={entry.bookingId}
+                    icon={CircleCheck}
+                    title={f.text(entry.serviceName)}
+                    subtitle={`${entry.reference} · ${f.date(entry.completedAt, 'dayMonth')} · ${t('earnings.feeAmount', { amount: f.money(entry.commission) })}`}
+                    trailing={
+                      <Text variant="calloutStrong" style={{ color: colors.success }}>
+                        {f.money(entry.net)}
+                      </Text>
+                    }
+                    onPress={() => router.push(proRoutes.job(entry.bookingId))}
+                  />
+                ))}
+              </ListGroup>
+            )}
+          </View>
 
           <View style={styles.section}>
             <SectionHeader title={t('earnings.payouts')} />
@@ -106,25 +141,30 @@ export default function ProEarnings() {
             ) : data.payouts.length === 0 ? (
               <EmptyState icon={Receipt} title={t('earnings.noPayouts')} />
             ) : (
-              <ListGroup>
-                {data.payouts.slice(0, 8).map((payout) => (
-                  <ListRow
-                    key={payout.id}
-                    icon={Receipt}
-                    title={f.money(payout.netAmount)}
-                    subtitle={t('earnings.period', {
-                      start: f.date(payout.periodStart, 'dayMonth'),
-                      end: f.date(new Date(Date.parse(payout.periodEnd) - 1), 'dayMonth'),
-                    })}
-                    trailing={
-                      <Badge
-                        label={t(`earnings.${payout.status}`)}
-                        tone={payoutTone[payout.status]}
-                      />
-                    }
-                  />
-                ))}
-              </ListGroup>
+              <>
+                <Text variant="caption" tone="muted">
+                  {t('earnings.payoutSimulated')}
+                </Text>
+                <ListGroup>
+                  {data.payouts.slice(0, 8).map((payout) => (
+                    <ListRow
+                      key={payout.id}
+                      icon={Receipt}
+                      title={f.money(payout.netAmount)}
+                      subtitle={t('earnings.period', {
+                        start: f.date(payout.periodStart, 'dayMonth'),
+                        end: f.date(new Date(Date.parse(payout.periodEnd) - 1), 'dayMonth'),
+                      })}
+                      trailing={
+                        <Badge
+                          label={t(`earnings.${payout.status}`)}
+                          tone={payoutTone[payout.status]}
+                        />
+                      }
+                    />
+                  ))}
+                </ListGroup>
+              </>
             )}
           </View>
         </>
@@ -144,7 +184,7 @@ const styles = StyleSheet.create({
     gap: space.md,
   },
   breakdownItem: { flex: 1, gap: 2 },
-  chartTitle: { marginBottom: space.lg },
-  section: { gap: space.lg },
+  chartHint: { marginTop: 2, marginBottom: space.md },
+  section: { gap: space.md },
   vendor: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start' },
 });

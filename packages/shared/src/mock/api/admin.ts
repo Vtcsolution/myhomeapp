@@ -6,12 +6,21 @@ import type {
   VendorRow,
 } from '../../api/contracts';
 import { ApiError } from '../../api/errors';
-import { canTransition } from '../../domain/bookingStatus';
-import { addDaysToLocalDate, kuwaitDateOf, toMs } from '../../domain/time';
+import { canTransition, isLiveStatus } from '../../domain/bookingStatus';
+import { addDaysToLocalDate, DAY_MS, kuwaitDateOf, toMs } from '../../domain/time';
 import { normalizeKuwaitPhone } from '../../format/phone';
 import { searchScore } from '../../text/search';
-import type { Booking, BookingStatus, Customer, Paginated, Technician, Vendor } from '../../types';
 import {
+  type Booking,
+  type BookingStatus,
+  type Customer,
+  mediaKeys,
+  type Paginated,
+  type Technician,
+  type Vendor,
+} from '../../types';
+import {
+  commissionRateFor,
   conflict,
   findBooking,
   findCategory,
@@ -219,7 +228,41 @@ export function createAdminApi(ctx: MockContext, run: Runner): AdminApi {
           .slice(0, 5);
 
         const activeTechnicians = ctx.state.technicians.filter((t) => t.status === 'active');
+        const monthCompleted = completed.filter((b) => revenueDate(b).startsWith(month));
+        const onJob = new Set(
+          bookings.filter((b) => isLiveStatus(b.status)).map((b) => b.technicianId),
+        );
+        const in24h = ctx.now() + DAY_MS;
+        const in30d = ctx.now() + 30 * DAY_MS;
         return {
+          alerts: {
+            unassignedSoon: bookings.filter(
+              (b) =>
+                b.status === 'pending' &&
+                toMs(b.scheduledStart) >= ctx.now() &&
+                toMs(b.scheduledStart) <= in24h,
+            ).length,
+            pendingExtraCharges: bookings.filter((b) =>
+              b.extraCharges.some((x) => x.status === 'pending_approval'),
+            ).length,
+            openTickets: ctx.state.tickets.filter(
+              (t) => t.status === 'open' || t.status === 'in_progress',
+            ).length,
+            flaggedReviews: ctx.state.reviews.filter((r) => r.status === 'flagged').length,
+            documentsExpiring: activeTechnicians.reduce(
+              (n, t) =>
+                n +
+                t.documents.filter(
+                  (d) =>
+                    d.status === 'expired' ||
+                    (d.expiresAt !== undefined && toMs(d.expiresAt) <= in30d),
+                ).length,
+              0,
+            ),
+            payoutsDue: ctx.state.payouts.filter(
+              (p) => p.status !== 'paid' && toMs(p.periodEnd) <= ctx.now(),
+            ).length,
+          },
           kpis: {
             revenueToday: sumRevenue(completed.filter((b) => revenueDate(b) === today)),
             revenueMonth: sumRevenue(completed.filter((b) => revenueDate(b).startsWith(month))),
@@ -246,6 +289,22 @@ export function createAdminApi(ctx: MockContext, run: Runner): AdminApi {
               : 1,
             cancellationRate: recentClosed.length
               ? recentClosed.filter((b) => b.status === 'cancelled').length / recentClosed.length
+              : 0,
+            customers: ctx.state.customers.length,
+            technicians: ctx.state.technicians.length,
+            vendors: ctx.state.vendors.length,
+            bookingsTotal: bookings.length,
+            activeBookings: bookings.filter(
+              (b) => b.status === 'confirmed' || isLiveStatus(b.status),
+            ).length,
+            platformFeesMonth: monthCompleted.reduce(
+              (s, b) => s + Math.round(b.price.total * commissionRateFor(ctx, b.technicianId)),
+              0,
+            ),
+            techniciansOnJob: activeTechnicians.filter((t) => onJob.has(t.id)).length,
+            reviewsCount: published.length,
+            satisfactionRate: published.length
+              ? published.filter((r) => r.rating >= 4).length / published.length
               : 0,
           },
           revenueSeries,
@@ -562,7 +621,59 @@ export function createAdminApi(ctx: MockContext, run: Runner): AdminApi {
         }
         if (patch.name && (!patch.name.en.trim() || !patch.name.ar.trim()))
           validation('Name is required in English and Arabic.');
+        if (
+          patch.shortDescription &&
+          (!patch.shortDescription.en.trim() || !patch.shortDescription.ar.trim())
+        ) {
+          validation('Summary is required in English and Arabic.');
+        }
+        if (patch.image !== undefined && !(mediaKeys as readonly string[]).includes(patch.image))
+          validation('Choose one of the licensed images.');
         Object.assign(service, patch);
+        return service;
+      }),
+
+    updateServicePricing: (id, input) =>
+      run.write(() => {
+        admin();
+        const service = findService(ctx, id);
+        const isAmount = (v: number) => Number.isInteger(v);
+        if (input.basePrice !== undefined && (!isAmount(input.basePrice) || input.basePrice <= 0))
+          validation('Base price must be a positive amount.');
+        const minUnits = input.minUnits ?? service.minUnits;
+        const maxUnits = input.maxUnits ?? service.maxUnits;
+        if (!Number.isInteger(minUnits) || !Number.isInteger(maxUnits) || minUnits < 1)
+          validation('Units must be whole numbers from 1.');
+        if (maxUnits < minUnits || maxUnits > 50)
+          validation('Maximum units must be between the minimum and 50.');
+        const choices = new Map(
+          service.optionGroups.flatMap((g) => g.choices.map((c) => [c.id, c] as const)),
+        );
+        for (const [choiceId, delta] of Object.entries(input.optionPrices ?? {})) {
+          if (!choices.has(choiceId)) validation('Unknown option.', { choiceId });
+          if (!isAmount(delta)) validation('Enter a valid option price.');
+        }
+        // Options may lower the price (e.g. a smaller unit) but never to zero or below.
+        const base = input.basePrice ?? service.basePrice;
+        for (const choice of choices.values()) {
+          const delta = input.optionPrices?.[choice.id] ?? choice.priceDelta;
+          if (base + delta <= 0)
+            validation('An option cannot reduce the price to zero or below.', {
+              choiceId: choice.id,
+            });
+        }
+        const addOns = new Map(service.addOns.map((a) => [a.id, a]));
+        for (const [addOnId, price] of Object.entries(input.addOnPrices ?? {})) {
+          if (!addOns.has(addOnId)) validation('Unknown add-on.', { addOnId });
+          if (!isAmount(price) || price <= 0) validation('Add-on prices must be positive.');
+        }
+        if (input.basePrice !== undefined) service.basePrice = input.basePrice;
+        service.minUnits = minUnits;
+        service.maxUnits = maxUnits;
+        for (const [choiceId, delta] of Object.entries(input.optionPrices ?? {}))
+          choices.get(choiceId)!.priceDelta = delta;
+        for (const [addOnId, price] of Object.entries(input.addOnPrices ?? {}))
+          addOns.get(addOnId)!.price = price;
         return service;
       }),
 
@@ -585,6 +696,19 @@ export function createAdminApi(ctx: MockContext, run: Runner): AdminApi {
           validation('Enter a valid amount.');
         if (toMs(input.validUntil) <= toMs(input.validFrom))
           validation('End date must be after the start date.');
+        if (!Number.isInteger(input.minSubtotal) || input.minSubtotal < 0)
+          validation('Enter a valid minimum order.');
+        if (
+          input.maxDiscount !== undefined &&
+          (!Number.isInteger(input.maxDiscount) || input.maxDiscount <= 0)
+        )
+          validation('Enter a valid maximum discount.');
+        if (!Number.isInteger(input.usageLimit) || input.usageLimit < 1)
+          validation('The usage limit must be at least 1.');
+        if (!input.description.en.trim() || !input.description.ar.trim())
+          validation('Add a description in English and Arabic.');
+        if (input.categoryIds.some((id) => !ctx.state.categories.some((c) => c.id === id)))
+          validation('Unknown category.');
         if (input.id) {
           const existing = findCoupon(ctx, input.id);
           Object.assign(existing, { ...input, code });
@@ -609,6 +733,8 @@ export function createAdminApi(ctx: MockContext, run: Runner): AdminApi {
         const rows = ctx.state.reviews
           .filter((r) => (query.status ? r.status === query.status : true))
           .filter((r) => (query.maxRating ? r.rating <= query.maxRating : true))
+          .filter((r) => (query.customerId ? r.customerId === query.customerId : true))
+          .filter((r) => (query.technicianId ? r.technicianId === query.technicianId : true))
           .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt))
           .map((r) => reviewView(ctx, r));
         return paginate(rows, query.page, query.pageSize);
@@ -662,6 +788,8 @@ export function createAdminApi(ctx: MockContext, run: Runner): AdminApi {
         admin();
         return ctx.state.tickets
           .filter((t) => (query.status ? t.status === query.status : true))
+          .filter((t) => (query.requesterId ? t.requesterId === query.requesterId : true))
+          .filter((t) => (query.bookingId ? t.bookingId === query.bookingId : true))
           .sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt))
           .map((t) => ({
             ...t,

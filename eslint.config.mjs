@@ -37,7 +37,7 @@ export default defineConfig(
     },
   },
   {
-    files: ['apps/mobile/**/*.{ts,tsx}'],
+    files: ['apps/mobile/**/*.{ts,tsx}', 'apps/admin/**/*.{ts,tsx}'],
     plugins: { 'react-hooks': reactHooks },
     languageOptions: {
       globals: { ...globals.browser },

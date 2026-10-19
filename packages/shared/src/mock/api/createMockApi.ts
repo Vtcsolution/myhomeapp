@@ -42,6 +42,12 @@ export interface MockApi extends MyHomeApi {
   exportState(): MockState;
   /** Re-seeds the demo data relative to the current time and signs out. */
   reset(): void;
+  /**
+   * Adopts a state written by another app or tab (shared demo storage). By
+   * default the current session is kept, so each app stays signed in as its
+   * own user.
+   */
+  loadState(state: MockState, options?: { keepSession?: boolean }): void;
 }
 
 /**
@@ -103,6 +109,11 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
     reset: () => {
       ctx.state = createSeedState({ now: now() });
       options.onChange?.(ctx.state);
+    },
+    loadState: (state, { keepSession = true } = {}) => {
+      const session = ctx.state.session;
+      ctx.state = cloneDeep(state);
+      if (keepSession) ctx.state.session = session;
     },
   };
 }

@@ -11,3 +11,4 @@ export * from './format';
 export * from './geo/kuwait';
 export * from './text/search';
 export * from './api';
+export * from './i18n';

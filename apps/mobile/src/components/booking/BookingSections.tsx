@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { RatingInput } from '@/components/booking/RatingInput';
 import { Badge } from '@/components/ui/Badge';
+import { Photo } from '@/components/ui/Photo';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
@@ -264,5 +265,70 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     marginTop: space.md,
+  },
+});
+
+/** Notes and photos the professional recorded during the visit. */
+export function WorkRecordCard({ booking }: { booking: BookingView }) {
+  const { t } = useLocale();
+  const { colors } = useTheme();
+  const f = useFormat();
+  const notes = booking.workNotes ?? [];
+  const photos = booking.workPhotos ?? [];
+  if (!notes.length && !photos.length) return null;
+  return (
+    <Card>
+      <Text variant="title3">{t('booking.workTitle')}</Text>
+      {notes.length ? (
+        <View style={workStyles.workBlock}>
+          <Text variant="captionStrong" tone="secondary">
+            {t('booking.workNotes')}
+          </Text>
+          {notes.map((note) => (
+            <View key={note.id} style={workStyles.workNote}>
+              <Text variant="callout" natural>
+                {note.text}
+              </Text>
+              <Text variant="caption" tone="muted">
+                {f.date(note.createdAt, 'dayMonth')} · {f.time(note.createdAt)}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {photos.length ? (
+        <View style={workStyles.workBlock}>
+          <Text variant="captionStrong" tone="secondary">
+            {t('booking.workPhotos')}
+          </Text>
+          <View style={workStyles.workPhotos}>
+            {photos.map((photo) => (
+              <View key={photo.id}>
+                <Photo media={photo.media} style={workStyles.workPhoto} />
+                <View style={[workStyles.workStage, { backgroundColor: colors.midnight }]}>
+                  <Text variant="captionStrong" style={{ color: colors.champagne }}>
+                    {t(photo.stage === 'before' ? 'job.before' : 'job.after')}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
+const workStyles = StyleSheet.create({
+  workBlock: { gap: space.sm, marginTop: space.md },
+  workNote: { gap: 2 },
+  workPhotos: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  workPhoto: { width: 88, height: 88, borderRadius: radius.md },
+  workStage: {
+    position: 'absolute',
+    bottom: space.xs,
+    start: space.xs,
+    paddingHorizontal: space.xs,
+    borderRadius: radius.sm,
   },
 });

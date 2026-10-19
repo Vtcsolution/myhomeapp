@@ -1,6 +1,7 @@
-import type { EarningsRange, JobScope, TechnicianApi } from '../../api/contracts';
+import type { EarningsRange, JobScope, JobView, TechnicianApi } from '../../api/contracts';
 import { ApiError } from '../../api/errors';
 import { isFinalStatus, isLiveStatus, nextTechnicianStatus } from '../../domain/bookingStatus';
+import { isTechnicianAvailable } from '../../domain/schedule';
 import { withExtraCharges } from '../../domain/pricing';
 import {
   addDaysToLocalDate,
@@ -12,8 +13,15 @@ import {
   toMs,
 } from '../../domain/time';
 import { formatMoney } from '../../format/money';
-import type { Booking, Technician, TechnicianAvailability, Weekday } from '../../types';
 import {
+  type Booking,
+  mediaKeys,
+  type Technician,
+  type TechnicianAvailability,
+  type Weekday,
+} from '../../types';
+import {
+  commissionRateFor,
   conflict,
   currentTechnician,
   findBooking,
@@ -29,10 +37,27 @@ import { canTake, confirmBooking, offerToTechnicians, settlePayment } from './di
 import type { Runner } from './runner';
 import { bookingView, reviewView } from './views';
 
-const RANGE_DAYS: Record<EarningsRange, number> = { week: 7, month: 30, quarter: 90 };
+const RANGE_DAYS: Record<EarningsRange, number> = { today: 1, week: 7, month: 30, quarter: 90 };
+/** Statuses in which a job holds the professional's time. */
+const COMMITTED = new Set(['confirmed', 'on_the_way', 'arrived', 'in_progress']);
+const MAX_PHOTOS = 8;
 
 export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianApi {
   const myJobs = (t: Technician) => ctx.state.bookings.filter((b) => b.technicianId === t.id);
+
+  /** Booking view plus what the job pays this professional (offers use their own rate). */
+  const jobView = (t: Technician, b: Booking): JobView => {
+    const rate = commissionRateFor(ctx, b.technicianId ?? t.id);
+    const commission = Math.round(b.price.total * rate);
+    return { ...bookingView(ctx, b), commission, technicianNet: b.price.total - commission };
+  };
+
+  /** Notes can be recorded from setting off until after completion. */
+  const recordable = (b: Booking) =>
+    b.status === 'on_the_way' ||
+    b.status === 'arrived' ||
+    b.status === 'in_progress' ||
+    b.status === 'completed';
 
   const ownJob = (t: Technician, id: string): Booking => {
     const booking = findBooking(ctx, id);
@@ -115,8 +140,8 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
         const accepted = jobs.length;
         return {
           isOnline: t.isOnline,
-          todayJobs: todayJobs.map((b) => bookingView(ctx, b)),
-          nextJob: nextJob ? bookingView(ctx, nextJob) : null,
+          todayJobs: todayJobs.map((b) => jobView(t, b)),
+          nextJob: nextJob ? jobView(t, nextJob) : null,
           pendingOffers: openOffers(t).length,
           earningsToday: net(completedSince(t, startOfToday)),
           earningsWeek: net(weekJobs),
@@ -128,7 +153,10 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
       }),
 
     listOffers: () =>
-      run.read(() => openOffers(currentTechnician(ctx)).map((b) => bookingView(ctx, b))),
+      run.read(() => {
+        const t = currentTechnician(ctx);
+        return openOffers(t).map((b) => jobView(t, b));
+      }),
 
     acceptOffer: (bookingId) =>
       run.write(() => {
@@ -140,7 +168,7 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
         }
         if (!canTake(ctx, t, booking)) conflict('You already have a job at this time.');
         confirmBooking(ctx, booking, t, 'technician');
-        return bookingView(ctx, booking);
+        return jobView(t, booking);
       }),
 
     declineOffer: (bookingId) =>
@@ -174,7 +202,7 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
               : scope === 'completed'
                 ? jobs.filter((b) => b.status === 'completed').sort(byStartDesc)
                 : jobs.sort(byStartDesc);
-        return selected.map((b) => bookingView(ctx, b));
+        return selected.map((b) => jobView(t, b));
       }),
 
     getJob: (id) =>
@@ -184,7 +212,7 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
         const isOffer = booking.status === 'pending' && booking.offeredTo.includes(t.id);
         if (booking.technicianId !== t.id && !isOffer)
           throw new ApiError('NOT_FOUND', 'Job not found.');
-        return bookingView(ctx, booking);
+        return jobView(t, booking);
       }),
 
     advanceJob: (id) =>
@@ -236,7 +264,7 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
             booking.id,
           );
         }
-        return bookingView(ctx, booking);
+        return jobView(t, booking);
       }),
 
     addExtraCharge: (id, input) =>
@@ -279,7 +307,59 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
           },
           booking.id,
         );
-        return bookingView(ctx, booking);
+        return jobView(t, booking);
+      }),
+
+    addWorkNote: (id, text) =>
+      run.write(() => {
+        const t = currentTechnician(ctx);
+        const booking = ownJob(t, id);
+        if (!recordable(booking)) conflict('Notes can be added once you have set off.');
+        const body = text.trim();
+        if (body.length < 3 || body.length > 500) validation('Write a note of 3–500 characters.');
+        (booking.workNotes ??= []).push({
+          id: ctx.nextId('wnt'),
+          text: body,
+          createdAt: ctx.nowISO(),
+        });
+        touch(ctx, booking);
+        return jobView(t, booking);
+      }),
+
+    addWorkPhoto: (id, input) =>
+      run.write(() => {
+        const t = currentTechnician(ctx);
+        const booking = ownJob(t, id);
+        if (!recordable(booking) || booking.status === 'on_the_way') {
+          conflict('Photos can be added once you have arrived.');
+        }
+        if (!(mediaKeys as readonly string[]).includes(input.media)) validation('Unknown photo.');
+        if (input.stage !== 'before' && input.stage !== 'after') validation('Unknown photo stage.');
+        const photos = (booking.workPhotos ??= []);
+        if (photos.length >= MAX_PHOTOS) conflict(`A job can have up to ${MAX_PHOTOS} photos.`);
+        photos.push({
+          id: ctx.nextId('wph'),
+          media: input.media,
+          stage: input.stage,
+          createdAt: ctx.nowISO(),
+        });
+        touch(ctx, booking);
+        return jobView(t, booking);
+      }),
+
+    resubmitDocument: (documentId) =>
+      run.write(() => {
+        const t = currentTechnician(ctx);
+        const document = t.documents.find((d) => d.id === documentId);
+        if (!document) throw new ApiError('NOT_FOUND', 'Document not found.');
+        if (document.status !== 'expired' && document.status !== 'rejected') {
+          conflict('Only expired or rejected documents can be submitted again.');
+        }
+        document.status = 'pending';
+        document.uploadedAt = ctx.nowISO();
+        delete document.expiresAt;
+        const vendor = vendorOf(ctx, t);
+        return { ...t, vendor: vendor ? { id: vendor.id, name: vendor.name } : null };
       }),
 
     getEarnings: (range: EarningsRange = 'week') =>
@@ -302,8 +382,23 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
             jobs: dayJobs.length,
           };
         });
+        const entries = jobs
+          .map((b) => {
+            const bookingNet = netForTechnician(ctx, b);
+            return {
+              bookingId: b.id,
+              reference: b.reference,
+              serviceName: findService(ctx, b.serviceId).name,
+              completedAt: completedAt(b) ?? b.updatedAt,
+              gross: b.price.total,
+              commission: b.price.total - bookingNet,
+              net: bookingNet,
+            };
+          })
+          .sort((a, b) => toMs(b.completedAt) - toMs(a.completedAt));
         return {
           range,
+          entries,
           gross,
           commission: gross - net,
           net,
@@ -338,10 +433,24 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
         ) {
           validation('Days off must be valid dates within the next year.');
         }
-        t.availability = {
+        const next = {
           weekly: availability.weekly,
           daysOff: [...new Set(availability.daysOff)].sort(),
         };
+        // Never leave an accepted job outside the professional's working hours.
+        const orphaned = myJobs(t).filter(
+          (b) =>
+            COMMITTED.has(b.status) &&
+            !isTechnicianAvailable({ ...t, availability: next }, b.scheduledStart, b.scheduledEnd),
+        );
+        if (orphaned.length) {
+          throw new ApiError(
+            'CONFLICT',
+            'These hours exclude jobs you have already accepted.',
+            orphaned.map((b) => b.reference),
+          );
+        }
+        t.availability = next;
         return t.availability;
       }),
 

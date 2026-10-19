@@ -42,3 +42,19 @@ export const customerRoutes = {
     params,
   }),
 };
+
+/** Typed links for the professional app. */
+export const proRoutes = {
+  today: '/pro' as const,
+  jobs: (tab?: 'requests' | 'schedule' | 'completed'): Href => ({
+    pathname: '/pro/jobs',
+    params: tab ? { tab } : {},
+  }),
+  job: (id: string): Href => ({ pathname: '/pro/job/[id]', params: { id } }),
+  chat: (id: string): Href => ({ pathname: '/pro/chat/[id]', params: { id } }),
+  availability: '/pro/availability' as const,
+  reviews: '/pro/reviews' as const,
+  documents: '/pro/documents' as const,
+  notifications: '/pro/notifications' as const,
+  notificationSettings: '/pro/notification-settings' as const,
+};

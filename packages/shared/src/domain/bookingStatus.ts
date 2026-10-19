@@ -36,6 +36,11 @@ export function canTransition(from: BookingStatus, to: BookingStatus, role: User
   }
 }
 
+/** Every status `role` may move a booking to from `from` (shared by UIs and the API). */
+export function allowedTransitions(from: BookingStatus, role: UserRole): BookingStatus[] {
+  return ALLOWED[from].filter((to) => canTransition(from, to, role));
+}
+
 export type TechnicianStep = Exclude<BookingStatus, 'pending' | 'confirmed' | 'cancelled'>;
 
 /** The status a technician moves the job to next, or `null` when there is none. */

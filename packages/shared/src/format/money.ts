@@ -58,3 +58,19 @@ export function formatMoney(amount: Fils, options: MoneyFormatOptions = {}): str
     ? `${sign}${number} ${CURRENCY_LABEL.ar}`
     : `${sign}${CURRENCY_LABEL.en} ${number}`;
 }
+
+/**
+ * Parses an amount typed in Kuwaiti dinars ("4.5", "12,000.250", "٤٫٥") into
+ * fils. Returns null when the text is not a valid amount with at most three
+ * decimals.
+ */
+export function parseKwdToFils(input: string): number | null {
+  const latin = input
+    .trim()
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/٫/g, '.')
+    .replace(/[,٬\s]/g, '');
+  if (!/^\d+(\.\d{1,3})?$/.test(latin)) return null;
+  const [whole = '0', fraction = ''] = latin.split('.');
+  return Number(whole) * 1000 + Number(fraction.padEnd(3, '0'));
+}

@@ -280,6 +280,10 @@ describe('customer booking → technician → review', () => {
     });
     expect((await api.bookings.get(booking.id)).status).toBe('pending');
     clock += 25_000;
+    // The demo professional (tec-01) gets time to accept by hand when offered the job.
+    const demoOffered = booking.offeredTo.includes('tec-01');
+    expect((await api.bookings.get(booking.id)).status).toBe(demoOffered ? 'pending' : 'confirmed');
+    clock += 160_000;
     const confirmed = await api.bookings.get(booking.id);
     expect(confirmed.status).toBe('confirmed');
     expect(booking.offeredTo).toContain(confirmed.technicianId);

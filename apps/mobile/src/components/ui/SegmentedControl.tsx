@@ -48,6 +48,8 @@ export function SegmentedControl<T extends string>({
             style={[
               styles.segment,
               size === 'sm' && styles.segmentSmall,
+              // Four or more segments need the room for their labels on narrow phones.
+              segments.length > 3 && styles.segmentTight,
               selected && {
                 backgroundColor: colors.surface,
                 boxShadow: scheme === 'light' ? '0px 2px 8px rgba(15, 29, 43, 0.08)' : undefined,
@@ -80,4 +82,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   segmentSmall: { minHeight: 32 },
+  segmentTight: { paddingHorizontal: space.xs },
 });

@@ -1,7 +1,8 @@
 import { isApiError } from '@myhome/shared';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { onExternalDemoChange } from '@/services/api';
 import { dirAttribute, directionStyle } from '@/theme/direction';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LocaleProvider, useLocale } from './LocaleProvider';
@@ -42,6 +43,8 @@ function DirectionRoot({ children }: { children: ReactNode }) {
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(createQueryClient);
+  // Another tab (e.g. the admin dashboard) changed the shared demo: refresh everything.
+  useEffect(() => onExternalDemoChange(() => void queryClient.invalidateQueries()), [queryClient]);
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>

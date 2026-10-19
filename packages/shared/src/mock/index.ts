@@ -7,3 +7,4 @@ export { createMockApi, type MockApi, type MockApiOptions } from './api/createMo
 export { createSeedState, type SeedOptions } from './seed';
 export type { MockState } from './state';
 export { DEMO_ACCOUNTS } from './data/people';
+export { DEMO_STATE_KEY, DEMO_STATE_MAX_AGE_MS, parseDemoState } from './persistence';

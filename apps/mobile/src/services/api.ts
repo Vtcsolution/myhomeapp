@@ -6,28 +6,13 @@
  * replace `createMockApi(...)` with the HTTP client that implements `MyHomeApi`
  * — screens depend only on that interface.
  */
-import { HOUR_MS, toMs, type MyHomeApi } from '@myhome/shared';
-import { createMockApi, type MockState } from '@myhome/shared/mock';
+import type { MyHomeApi } from '@myhome/shared';
+import { createMockApi, DEMO_STATE_KEY, type MockState, parseDemoState } from '@myhome/shared/mock';
 import { AppState, Platform } from 'react-native';
 import { storage } from './storage';
 
-const STATE_KEY = 'myhome-demo-state';
-/** Demo data is generated relative to "now"; refresh it once it is this old. */
-const MAX_STATE_AGE_MS = 12 * HOUR_MS;
-const SAVE_DEBOUNCE_MS = 600;
-
-function loadPersistedState(): MockState | undefined {
-  const raw = storage.getItem(STATE_KEY);
-  if (!raw) return undefined;
-  try {
-    const state = JSON.parse(raw) as MockState;
-    if (state.version !== 1 || Date.now() - toMs(state.seededAt) > MAX_STATE_AGE_MS)
-      return undefined;
-    return state;
-  } catch {
-    return undefined;
-  }
-}
+/** Web saves quickly so another tab (e.g. the admin dashboard) sees changes promptly. */
+const SAVE_DEBOUNCE_MS = Platform.OS === 'web' ? 150 : 600;
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let pending: MockState | null = null;
@@ -36,12 +21,12 @@ let pending: MockState | null = null;
 export function persistDemoStateNow(): void {
   clearTimeout(saveTimer);
   if (!pending) return;
-  void storage.setItem(STATE_KEY, JSON.stringify(pending));
+  void storage.setItem(DEMO_STATE_KEY, JSON.stringify(pending));
   pending = null;
 }
 
 const mock = createMockApi({
-  state: loadPersistedState(),
+  state: parseDemoState(storage.getItem(DEMO_STATE_KEY), Date.now()),
   latency: { min: 160, max: 420 },
   onChange: (state) => {
     pending = state;
@@ -50,9 +35,30 @@ const mock = createMockApi({
   },
 });
 
+const externalListeners = new Set<() => void>();
+
+/**
+ * Called when another tab on the same web origin (the admin dashboard or a
+ * second app tab) changed the shared demo data. Returns an unsubscribe function.
+ */
+export function onExternalDemoChange(listener: () => void): () => void {
+  externalListeners.add(listener);
+  return () => externalListeners.delete(listener);
+}
+
 // Never lose the last change when the page reloads or the app goes to the background.
 if (Platform.OS === 'web') {
   globalThis.addEventListener?.('pagehide', persistDemoStateNow);
+  // Adopt changes written by another tab, keeping this app's own session.
+  globalThis.addEventListener?.('storage', (event: StorageEvent) => {
+    if (event.key !== DEMO_STATE_KEY) return;
+    const state = parseDemoState(event.newValue, Date.now());
+    if (!state) return;
+    clearTimeout(saveTimer);
+    pending = null;
+    mock.loadState(state);
+    externalListeners.forEach((listener) => listener());
+  });
 } else {
   AppState.addEventListener('change', (status) => {
     if (status !== 'active') persistDemoStateNow();

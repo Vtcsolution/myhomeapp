@@ -12,7 +12,9 @@ import type {
   EarningsRange,
   GovernorateId,
   JobScope,
+  MediaKey,
   Review,
+  TechnicianAvailability,
 } from '@myhome/shared';
 import {
   keepPreviousData,
@@ -226,6 +228,7 @@ export function useTechnicianDashboard() {
     queryKey: [user, 'pro', 'dashboard'],
     queryFn: () => api.technician.getDashboard(),
     enabled: useReady(),
+    refetchInterval: 30_000,
   });
 }
 
@@ -235,6 +238,7 @@ export function useJobOffers() {
     queryKey: [user, 'pro', 'offers'],
     queryFn: () => api.technician.listOffers(),
     enabled: useReady(),
+    refetchInterval: 30_000,
   });
 }
 
@@ -535,5 +539,132 @@ export function useReplyToTicket(id: string) {
   return useMutation({
     mutationFn: (text: string) => api.support.reply(id, text),
     onSuccess: () => invalidate(),
+  });
+}
+
+// ─── Professional workflow (stage 6) ─────────────────────────────────────────
+
+/** Refreshes everything a job change can affect on both sides of the demo. */
+function useInvalidateProfessional() {
+  const queryClient = useQueryClient();
+  const user = useUserKey();
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: [user, 'pro'] }),
+      queryClient.invalidateQueries({ queryKey: [user, 'notifications'] }),
+      queryClient.invalidateQueries({ queryKey: [user, 'chat'] }),
+    ]);
+}
+
+export function useJob(id: string | undefined) {
+  const user = useUserKey();
+  return useQuery({
+    queryKey: [user, 'pro', 'job', id],
+    queryFn: () => api.technician.getJob(id as string),
+    enabled: useReady() && !!id,
+    // Customer answers (e.g. extra-charge approval) show up while the job is open.
+    refetchInterval: 15_000,
+  });
+}
+
+export function useAcceptOffer() {
+  const invalidate = useInvalidateProfessional();
+  return useMutation({
+    mutationFn: (bookingId: string) => api.technician.acceptOffer(bookingId),
+    onSettled: () => invalidate(),
+  });
+}
+
+export function useDeclineOffer() {
+  const invalidate = useInvalidateProfessional();
+  return useMutation({
+    mutationFn: ({ bookingId, reason }: { bookingId: string; reason?: string }) =>
+      api.technician.declineOffer(bookingId, reason),
+    onSettled: () => invalidate(),
+  });
+}
+
+export function useAdvanceJob() {
+  const invalidate = useInvalidateProfessional();
+  return useMutation({
+    mutationFn: (id: string) => api.technician.advanceJob(id),
+    onSettled: () => invalidate(),
+  });
+}
+
+export function useAddExtraCharge() {
+  const invalidate = useInvalidateProfessional();
+  return useMutation({
+    mutationFn: ({
+      id,
+      description,
+      amount,
+    }: {
+      id: string;
+      description: string;
+      amount: number;
+    }) => api.technician.addExtraCharge(id, { description, amount }),
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useAddWorkNote() {
+  const invalidate = useInvalidateProfessional();
+  return useMutation({
+    mutationFn: ({ id, text }: { id: string; text: string }) =>
+      api.technician.addWorkNote(id, text),
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useAddWorkPhoto() {
+  const invalidate = useInvalidateProfessional();
+  return useMutation({
+    mutationFn: ({
+      id,
+      media,
+      stage,
+    }: {
+      id: string;
+      media: MediaKey;
+      stage: 'before' | 'after';
+    }) => api.technician.addWorkPhoto(id, { media, stage }),
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useAvailability() {
+  const user = useUserKey();
+  return useQuery({
+    queryKey: [user, 'pro', 'availability'],
+    queryFn: () => api.technician.getAvailability(),
+    enabled: useReady(),
+  });
+}
+
+export function useUpdateAvailability() {
+  const invalidate = useInvalidateProfessional();
+  return useMutation({
+    mutationFn: (availability: TechnicianAvailability) =>
+      api.technician.updateAvailability(availability),
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useTechnicianReviews() {
+  const user = useUserKey();
+  return useQuery({
+    queryKey: [user, 'pro', 'reviews'],
+    queryFn: () => api.technician.listReviews(),
+    enabled: useReady(),
+  });
+}
+
+export function useResubmitDocument() {
+  const queryClient = useQueryClient();
+  const user = useUserKey();
+  return useMutation({
+    mutationFn: (documentId: string) => api.technician.resubmitDocument(documentId),
+    onSuccess: (profile) => queryClient.setQueryData([user, 'pro', 'profile'], profile),
   });
 }

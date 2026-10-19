@@ -1,10 +1,13 @@
 import {
   daysBetweenLocalDates,
   kuwaitDateOf,
+  kuwaitLocalToISO,
   weekdayName,
   weekdayOfLocalDate,
 } from '@myhome/shared';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { PressableScale } from '@/components/ui/Pressable';
 import { Text } from '@/components/ui/Text';
 import { useFormat } from '@/hooks/useFormat';
 import { useNow } from '@/hooks/useNow';
@@ -15,6 +18,11 @@ import { space } from '@/theme/tokens';
 interface Point {
   date: string;
   net: number;
+}
+
+interface Bucket extends Point {
+  /** First day in the bucket (same as `date` for daily bars). */
+  from: string;
 }
 
 const CHART_HEIGHT = 132;
@@ -30,14 +38,21 @@ export function EarningsBars({ series }: { series: Point[] }) {
   const today = kuwaitDateOf(useNow());
 
   const bucketSize = series.length > 31 ? 7 : series.length > 7 ? 3 : 1;
-  const buckets: Point[] = [];
+  const buckets: Bucket[] = [];
   for (let i = series.length; i > 0; i -= bucketSize) {
     const slice = series.slice(Math.max(0, i - bucketSize), i);
+    const first = slice[0];
     const last = slice[slice.length - 1];
-    if (last) buckets.unshift({ date: last.date, net: slice.reduce((s, p) => s + p.net, 0) });
+    if (first && last) {
+      buckets.unshift({
+        date: last.date,
+        from: first.date,
+        net: slice.reduce((s, p) => s + p.net, 0),
+      });
+    }
   }
   const max = Math.max(1, ...buckets.map((b) => b.net));
-  const peak = buckets.reduce<Point | null>(
+  const peak = buckets.reduce<Bucket | null>(
     (best, b) => (!best || b.net > best.net ? b : best),
     null,
   );
@@ -48,24 +63,48 @@ export function EarningsBars({ series }: { series: Point[] }) {
       ? weekdayName(weekdayOfLocalDate(date), locale, true)
       : String(Number(date.slice(8, 10)));
 
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const selected =
+    buckets.find((b) => b.date === selectedDate) ?? buckets[buckets.length - 1] ?? null;
+  const day = (date: string) => f.date(kuwaitLocalToISO(date, '12:00'), 'dayMonth');
+  const period = (b: Bucket) =>
+    b.from === b.date ? day(b.date) : `${day(b.from)} – ${day(b.date)}`;
+
   return (
-    <View accessibilityRole="image" accessibilityLabel={peak ? f.money(peak.net) : undefined}>
+    <View>
+      {selected ? (
+        <Text variant="calloutStrong" style={styles.selected} accessibilityLiveRegion="polite">
+          {period(selected)} · {f.money(selected.net)}
+        </Text>
+      ) : null}
       <View style={[styles.chart, { height: CHART_HEIGHT }]}>
         {buckets.map((b) => {
           const isToday = daysBetweenLocalDates(b.date, today) === 0;
           const isPeak = peak?.date === b.date && b.net > 0;
+          const isSelected = selected?.date === b.date;
           return (
-            <View key={b.date} style={styles.column}>
+            <PressableScale
+              key={b.date}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={`${period(b)}, ${f.money(b.net)}`}
+              onPress={() => setSelectedDate(b.date)}
+              style={styles.column}
+            >
               <View
                 style={[
                   styles.bar,
                   {
                     height: Math.max(3, (b.net / max) * CHART_HEIGHT),
-                    backgroundColor: isPeak || isToday ? colors.accent : colors.border,
+                    backgroundColor: isSelected
+                      ? colors.primary
+                      : isPeak || isToday
+                        ? colors.accent
+                        : colors.border,
                   },
                 ]}
               />
-            </View>
+            </PressableScale>
           );
         })}
       </View>
@@ -91,8 +130,9 @@ export function EarningsBars({ series }: { series: Point[] }) {
 }
 
 const styles = StyleSheet.create({
+  selected: { marginBottom: space.md },
   chart: { flexDirection: 'row', alignItems: 'flex-end', gap: space.xs },
-  column: { flex: 1, alignItems: 'center' },
+  column: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: '100%' },
   bar: { width: '100%', maxWidth: 28, borderRadius: 6 },
   labels: { flexDirection: 'row', gap: space.xs, marginTop: space.sm },
   label: { fontSize: 10 },

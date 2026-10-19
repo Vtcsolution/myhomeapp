@@ -1,19 +1,31 @@
-import { isLiveStatus } from '@myhome/shared';
+import { isLiveStatus, kuwaitDateOf } from '@myhome/shared';
 import { router } from 'expo-router';
-import { Bell, Briefcase, CalendarCheck, Power } from 'lucide-react-native';
+import {
+  AlertCircle,
+  ArrowRight,
+  Bell,
+  Briefcase,
+  CalendarCheck,
+  Navigation,
+  Power,
+} from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import { JobCard } from '@/components/pro/JobCard';
 import { OnlineToggle } from '@/components/pro/OnlineToggle';
 import { StatTile } from '@/components/pro/StatTile';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { DirectionalIcon } from '@/components/ui/DirectionalIcon';
 import { SectionHeader } from '@/components/ui/Headers';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
 import { Skeleton, SkeletonList } from '@/components/ui/Skeleton';
 import { EmptyState, ErrorState } from '@/components/ui/StateViews';
 import { Text } from '@/components/ui/Text';
+import { DemoNotice } from '@/components/ui/DemoNotice';
+import { PressableScale } from '@/components/ui/Pressable';
 import {
+  useJobs,
   useSetOnline,
   useTechnicianDashboard,
   useTechnicianProfile,
@@ -22,7 +34,10 @@ import {
 import { useFormat } from '@/hooks/useFormat';
 import { useGreeting } from '@/hooks/useGreeting';
 import { useNow } from '@/hooks/useNow';
-import { useNextStage } from '@/hooks/useNextStage';
+import type { TKey } from '@/i18n/translate';
+import { type AttentionReason, attentionItems } from '@/lib/attention';
+import { nextJobAction } from '@/lib/jobActions';
+import { proRoutes } from '@/navigation/routes';
 import { useLocale } from '@/providers/LocaleProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { radius, space } from '@/theme/tokens';
@@ -31,10 +46,10 @@ export default function ProToday() {
   const { t } = useLocale();
   const { colors } = useTheme();
   const f = useFormat();
-  const nextStage = useNextStage();
   const now = useNow();
   const profile = useTechnicianProfile();
   const dashboard = useTechnicianDashboard();
+  const upcoming = useJobs('upcoming');
   const unread = useUnreadCount();
   const setOnline = useSetOnline();
   const greeting = useGreeting(
@@ -43,7 +58,10 @@ export default function ProToday() {
 
   const online = profile.data?.isOnline ?? dashboard.data?.isOnline ?? false;
   const data = dashboard.data;
-  const openJob = () => nextStage('features.jobDetails', 6);
+  const openJob = (id: string) => router.push(proRoutes.job(id));
+  const attention = attentionItems(upcoming.data ?? [], now).slice(0, 3);
+  const next = data?.nextJob ?? null;
+  const nextAction = next ? nextJobAction(next, kuwaitDateOf(now)) : null;
 
   return (
     <Screen
@@ -52,6 +70,7 @@ export default function ProToday() {
         void dashboard.refetch();
         void profile.refetch();
         void unread.refetch();
+        void upcoming.refetch();
       }}
       contentStyle={styles.content}
     >
@@ -125,12 +144,79 @@ export default function ProToday() {
             <StatTile label={t('pro.acceptance')} value={f.percent(data.acceptanceRate)} />
           </View>
 
-          {data.nextJob ? (
+          <Text variant="caption" tone="secondary">
+            {t('pro.completedWeek', { count: data.jobsCompletedWeek })}
+          </Text>
+
+          {attention.length ? (
+            <View style={styles.section}>
+              <SectionHeader title={t('pro.urgent')} />
+              <Card padded={false}>
+                {attention.map(({ job, reason }, i) => (
+                  <PressableScale
+                    key={job.id}
+                    scaleTo={0.99}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${f.text(job.service.name)}, ${t(URGENT[reason], { reference: job.reference, time: f.time(job.scheduledStart) })}`}
+                    onPress={() => openJob(job.id)}
+                    style={[
+                      styles.urgentRow,
+                      i > 0 && {
+                        borderTopColor: colors.hairline,
+                        borderTopWidth: StyleSheet.hairlineWidth * 2,
+                      },
+                    ]}
+                  >
+                    <AlertCircle
+                      size={18}
+                      color={reason === 'extra' ? colors.warning : colors.accent}
+                      strokeWidth={1.75}
+                    />
+                    <View style={styles.flex}>
+                      <Text variant="bodyStrong" numberOfLines={1}>
+                        {f.text(job.service.name)}
+                      </Text>
+                      <Text variant="caption" tone="secondary">
+                        {t(URGENT[reason], {
+                          reference: job.reference,
+                          time: f.time(job.scheduledStart),
+                        })}
+                      </Text>
+                    </View>
+                    <DirectionalIcon
+                      icon={ArrowRight}
+                      size={16}
+                      color={colors.textMuted}
+                      strokeWidth={1.75}
+                    />
+                  </PressableScale>
+                ))}
+              </Card>
+            </View>
+          ) : null}
+
+          {next ? (
             <View style={styles.section}>
               <SectionHeader
-                title={isLiveStatus(data.nextJob.status) ? t('pro.inProgress') : t('pro.nextJob')}
+                title={isLiveStatus(next.status) ? t('pro.inProgress') : t('pro.nextJob')}
               />
-              <JobCard job={data.nextJob} featured onPress={openJob} />
+              <JobCard job={next} featured onPress={() => openJob(next.id)} />
+              <Button
+                label={
+                  nextAction?.kind === 'advance' &&
+                  nextAction.next === 'on_the_way' &&
+                  !nextAction.blockedUntil
+                    ? t('pro.startTravel')
+                    : t('pro.openJob')
+                }
+                icon={
+                  nextAction?.kind === 'advance' && nextAction.next === 'on_the_way'
+                    ? Navigation
+                    : undefined
+                }
+                fullWidth
+                onPress={() => openJob(next.id)}
+              />
             </View>
           ) : null}
 
@@ -151,12 +237,10 @@ export default function ProToday() {
               </View>
               {data.pendingOffers ? (
                 <Button
-                  label={t('pro.review')}
+                  label={t('pro.viewRequests')}
                   size="sm"
                   variant="secondary"
-                  onPress={() =>
-                    router.navigate({ pathname: '/pro/jobs', params: { tab: 'requests' } })
-                  }
+                  onPress={() => router.navigate(proRoutes.jobs('requests'))}
                 />
               ) : null}
             </View>
@@ -173,16 +257,23 @@ export default function ProToday() {
             ) : (
               <View style={styles.list}>
                 {data.todayJobs.map((job) => (
-                  <JobCard key={job.id} job={job} onPress={openJob} />
+                  <JobCard key={job.id} job={job} onPress={() => openJob(job.id)} />
                 ))}
               </View>
             )}
           </View>
         </>
       )}
+      <DemoNotice text={t('pro.demoData')} />
     </Screen>
   );
 }
+
+const URGENT: Record<AttentionReason, TKey> = {
+  extra: 'pro.urgentExtra',
+  live: 'pro.urgentLive',
+  soon: 'pro.urgentSoon',
+};
 
 const styles = StyleSheet.create({
   content: { paddingTop: space.lg },
@@ -212,4 +303,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   list: { gap: space.md },
+  urgentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md,
+  },
 });

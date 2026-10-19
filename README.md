@@ -18,7 +18,10 @@ apps/
     src/services/    API instance, on-device persistence, preferences
     assets/          brand marks + licensed photography (assets/images/sources.json)
     scripts/         build_assets.py — rebuilds photos and brand icons
-  admin/         React web dashboard — operations, vendors, finance       (Stage 7)
+  admin/         React + Vite operations dashboard — bookings, people, catalogue, finance, support
+    src/pages/       one file per screen (routes in src/App.tsx, served under /admin)
+    src/components/  layout (sidebar, top bar), tables, charts, dialogs, form fields
+    src/lib/         URL filters, alerts, pricing/coupon form rules, sorting
 packages/
   shared/        @myhome/shared — used by both apps
     src/brand/       brand.json (name, palette, fonts, contacts) · business.config.ts (fees, hours, policies)
@@ -53,6 +56,20 @@ npx expo start --web     # open in a browser
 The demo state is saved on the device (a file on native, localStorage on web) and refreshed after 12 hours.
 **Account → Reset demo data** restores it at any time.
 
+### Run the admin dashboard
+
+```bash
+cd apps/mobile && npx expo start --web --port 8081     # terminal 1 — customer/professional web app
+cd apps/admin  && npm run dev                          # terminal 2 — http://localhost:5173/admin/
+```
+
+The dashboard dev server forwards every path outside `/admin` to the Expo web server, so both apps run on one
+origin and share one demo database: a booking made at `http://localhost:5173/` appears in the dashboard, and an
+assignment made in the dashboard reaches the professional app. Open tabs pick up each other's changes without a
+reload. `npm run build -w @myhome/admin` produces a static build in `apps/admin/dist` (served under `/admin/`).
+
+Admin sign-in is simulated. Payouts, refunds and payments are recorded in the demo data only — no money moves.
+
 ## Demo accounts (simulated)
 
 | Role       | Sign in with                      | Code |
@@ -86,3 +103,5 @@ Screens depend only on the `MyHomeApi` interface (`packages/shared/src/api/contr
 - [x] Stage 3 — customer discovery: personalised home, categories with sort/filter, bilingual search with recent searches, service details with live pricing, booking hand-off
 - [x] Stage 4 — booking flow: saved addresses (add/edit/delete/default, Kuwaiti format with PACI), date & time from live availability, checkout with promo codes and simulated payment, duplicate-safe confirmation, booking details, demo tracking, reschedule and cancellation
 - [x] Stage 5 — customer account: personal details, notification preferences, security, simulated wallet statement, notifications inbox (filters, grouping, deep links), simulated chat with professionals and customer-care requests; reload-safe checkout and current-slot marking when rescheduling
+- [x] Stage 6 — professional app: dashboard with attention list, job requests with accept/decline, job workflow (travel → arrival → service → completion) with notes, demo photos and extra charges, schedule with arrival windows, availability editor, earnings and simulated payouts, reviews, documents and messages; changes sync to the customer app
+- [x] Stage 7 — admin dashboard: overview with live KPIs, charts and alerts; bookings (URL filters, eligible assignment, legal status moves, cancellation with simulated refund); customers, professionals (document review, approval only when every document is verified) and companies; categories, services (content, image, visibility, pricing with live preview), zones and coupons; review moderation; simulated payouts; support tickets; settings and alert preferences — English/Arabic RTL, light/dark, desktop to phone
