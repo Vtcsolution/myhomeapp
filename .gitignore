@@ -24,3 +24,15 @@ ios/
 npm-debug.log*
 .DS_Store
 Thumbs.db
+
+# Signing material and credentials (never commit — the repository is public)
+credentials.json
+*.jks
+*.keystore
+*.p8
+*.p12
+*.pem
+*.key
+*.mobileprovision
+google-services.json
+GoogleService-Info.plist

@@ -20,6 +20,16 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.myhome.demo',
+    // Starting build number. EAS Build manages it from here (eas.json:
+    // appVersionSource "remote" + autoIncrement), so it is not bumped by hand.
+    versionCode: 1,
+    // Added by default but not used: demo data lives in app-private storage and
+    // the app draws no overlays. Removed from the merged Android manifest.
+    blockedPermissions: [
+      'android.permission.READ_EXTERNAL_STORAGE',
+      'android.permission.WRITE_EXTERNAL_STORAGE',
+      'android.permission.SYSTEM_ALERT_WINDOW',
+    ],
     adaptiveIcon: {
       foregroundImage: './assets/brand/adaptive-foreground.png',
       monochromeImage: './assets/brand/adaptive-monochrome.png',
