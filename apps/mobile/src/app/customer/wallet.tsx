@@ -13,7 +13,7 @@ import {
   PlusCircle,
   Undo2,
   WalletMinimal,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Badge } from '@/components/ui/Badge';

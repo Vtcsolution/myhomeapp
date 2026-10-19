@@ -1,4 +1,4 @@
-import { Minus, Plus } from 'lucide-react-native';
+import { Minus, Plus } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { useLocale } from '@/providers/LocaleProvider';
 import { useTheme } from '@/providers/ThemeProvider';

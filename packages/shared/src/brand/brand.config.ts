@@ -20,6 +20,12 @@ export interface BrandPalette {
   accent: string;
   accentSoft: string;
   onAccent: string;
+  /**
+   * Accent and status colours for small text. In light mode the fills are too
+   * pale for text, so these are deeper shades (WCAG AA 4.5:1 on surfaces and
+   * on the soft badge tints); in dark mode they equal the fills.
+   */
+  accentText: string;
   /** Warm ivory app background and pure surfaces for cards. */
   background: string;
   surface: string;
@@ -29,7 +35,9 @@ export interface BrandPalette {
   textSecondary: string;
   textMuted: string;
   success: string;
+  successText: string;
   warning: string;
+  warningText: string;
   danger: string;
   info: string;
 }

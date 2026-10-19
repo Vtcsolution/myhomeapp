@@ -33,7 +33,13 @@ import {
   validation,
   vendorOf,
 } from './context';
-import { canTake, confirmBooking, offerToTechnicians, settlePayment } from './dispatch';
+import {
+  canTake,
+  companyAllowsWork,
+  confirmBooking,
+  offerToTechnicians,
+  settlePayment,
+} from './dispatch';
 import type { Runner } from './runner';
 import { bookingView, reviewView } from './views';
 
@@ -109,6 +115,12 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
             'Your account must be approved before you can go online.',
           );
         }
+        if (online && !companyAllowsWork(ctx, t)) {
+          throw new ApiError(
+            'FORBIDDEN',
+            'Your company is suspended. Contact your company or customer care.',
+          );
+        }
         t.isOnline = online;
         const vendor = vendorOf(ctx, t);
         return { ...t, vendor: vendor ? { id: vendor.id, name: vendor.name } : null };
@@ -161,7 +173,8 @@ export function createTechnicianApi(ctx: MockContext, run: Runner): TechnicianAp
     acceptOffer: (bookingId) =>
       run.write(() => {
         const t = currentTechnician(ctx);
-        if (t.status !== 'active') throw new ApiError('FORBIDDEN', 'Your account is not active.');
+        if (t.status !== 'active' || !companyAllowsWork(ctx, t))
+          throw new ApiError('FORBIDDEN', 'Your account is not active.');
         const booking = findBooking(ctx, bookingId);
         if (booking.status !== 'pending' || !booking.offeredTo.includes(t.id)) {
           conflict('This job is no longer available.');

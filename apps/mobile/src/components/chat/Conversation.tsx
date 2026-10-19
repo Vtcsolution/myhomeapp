@@ -1,4 +1,4 @@
-import { SendHorizontal } from 'lucide-react-native';
+import { SendHorizontal } from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { DirectionalIcon } from '@/components/ui/DirectionalIcon';
@@ -56,7 +56,7 @@ export function MessageBubble({ message }: { message: BubbleMessage }) {
         {message.author ? (
           <Text
             variant="captionStrong"
-            style={{ color: mine ? colors.champagne : colors.accent }}
+            style={{ color: mine ? colors.champagne : colors.accentText }}
             numberOfLines={1}
           >
             {message.author}

@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   UserRound,
   Wallet,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import {
   PreferencesSection,

@@ -1,6 +1,6 @@
 import { addressTitle, businessConfig, kuwaitDateOf } from '@myhome/shared';
 import { router } from 'expo-router';
-import { ArrowRight, CalendarX2, MapPin } from 'lucide-react-native';
+import { ArrowRight, CalendarX2, MapPin } from '@/components/ui/icons';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { FlowHeader } from '@/components/booking/FlowHeader';
@@ -137,7 +137,7 @@ export default function BookScheduleScreen() {
 
       {slotLost ? (
         <Card tone="muted">
-          <Text variant="callout" style={{ color: colors.warning }}>
+          <Text variant="callout" style={{ color: colors.warningText }}>
             {t('bookFlow.slotTaken')}
           </Text>
         </Card>

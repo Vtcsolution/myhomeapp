@@ -1,6 +1,6 @@
 import type { EarningsRange, PayoutStatus, StatusTone } from '@myhome/shared';
 import { router } from 'expo-router';
-import { Building2, CircleCheck, Receipt } from 'lucide-react-native';
+import { Building2, CircleCheck, Receipt } from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { EarningsBars } from '@/components/pro/EarningsBars';
@@ -114,7 +114,7 @@ export default function ProEarnings() {
                     title={f.text(entry.serviceName)}
                     subtitle={`${entry.reference} · ${f.date(entry.completedAt, 'dayMonth')} · ${t('earnings.feeAmount', { amount: f.money(entry.commission) })}`}
                     trailing={
-                      <Text variant="calloutStrong" style={{ color: colors.success }}>
+                      <Text variant="calloutStrong" style={{ color: colors.successText }}>
                         {f.money(entry.net)}
                       </Text>
                     }

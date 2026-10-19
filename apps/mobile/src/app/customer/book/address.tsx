@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowRight, MapPinned, Plus } from 'lucide-react-native';
+import { ArrowRight, MapPinned, Plus } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { AddressCard } from '@/components/address/AddressCard';
 import { FlowHeader } from '@/components/booking/FlowHeader';

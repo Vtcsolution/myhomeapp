@@ -1,6 +1,6 @@
 import type { Locale } from '@myhome/shared';
 import { router } from 'expo-router';
-import { Globe, Info, LogOut, RotateCcw, SunMoon } from 'lucide-react-native';
+import { Globe, Info, LogOut, RotateCcw, SunMoon } from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ConfirmDialog } from '@/components/ui/Dialog';

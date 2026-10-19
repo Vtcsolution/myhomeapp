@@ -2,7 +2,7 @@ import { DEMO_ACCOUNTS } from '@myhome/shared/mock';
 import { brand, isValidKuwaitMobile, normalizeKuwaitPhone } from '@myhome/shared';
 import { useMutation } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Briefcase, KeyRound, UserRound } from 'lucide-react-native';
+import { Briefcase, KeyRound, UserRound } from '@/components/ui/icons';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { Button } from '@/components/ui/Button';

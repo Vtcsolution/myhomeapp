@@ -1,5 +1,5 @@
 import { type Address, addressTitle, formatKuwaitPhone } from '@myhome/shared';
-import { Briefcase, House, MapPin, Pencil, Star, Trash2 } from 'lucide-react-native';
+import { Briefcase, House, MapPin, Pencil, Star, Trash2 } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { Badge } from '@/components/ui/Badge';
 import { hapticSelection, PressableScale } from '@/components/ui/Pressable';

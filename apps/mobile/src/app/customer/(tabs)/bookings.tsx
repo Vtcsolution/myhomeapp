@@ -1,6 +1,6 @@
 import { isFinalStatus, toMs } from '@myhome/shared';
 import { router } from 'expo-router';
-import { CalendarDays, History } from 'lucide-react-native';
+import { CalendarDays, History } from '@/components/ui/icons';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { BookingCard } from '@/components/booking/BookingCard';

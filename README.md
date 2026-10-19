@@ -36,7 +36,7 @@ packages/
 
 ## Getting started
 
-Requires Node 22.13 or later.
+Requires Node 22.22 or later (React Router 8 and the admin test environment need it).
 
 ```bash
 npm install
@@ -56,19 +56,38 @@ npx expo start --web     # open in a browser
 The demo state is saved on the device (a file on native, localStorage on web) and refreshed after 12 hours.
 **Account → Reset demo data** restores it at any time.
 
-### Run the admin dashboard
+### Run all three experiences together (web)
 
 ```bash
-cd apps/mobile && npx expo start --web --port 8081     # terminal 1 — customer/professional web app
-cd apps/admin  && npm run dev                          # terminal 2 — http://localhost:5173/admin/
+cd apps/mobile && npx expo start --web --port 8081     # terminal 1 — customer & professional app
+cd apps/admin  && npm run dev                          # terminal 2 — admin dashboard
 ```
 
-The dashboard dev server forwards every path outside `/admin` to the Expo web server, so both apps run on one
-origin and share one demo database: a booking made at `http://localhost:5173/` appears in the dashboard, and an
-assignment made in the dashboard reaches the professional app. Open tabs pick up each other's changes without a
-reload. `npm run build -w @myhome/admin` produces a static build in `apps/admin/dist` (served under `/admin/`).
+Then open everything through the dashboard server, so all apps share one origin and one demo database:
+
+- Customer / professional app: `http://localhost:5173/`
+- Admin dashboard: `http://localhost:5173/admin/`
+
+The dashboard dev server forwards every path outside `/admin` to the Expo web server. A booking made in the
+customer app appears in the dashboard, an assignment made in the dashboard reaches the professional app, and open
+tabs refresh by themselves. `npm run build -w @myhome/admin` produces a static build in `apps/admin/dist`
+(served under `/admin/`).
 
 Admin sign-in is simulated. Payouts, refunds and payments are recorded in the demo data only — no money moves.
+
+### How the shared demo data works — and its limits
+
+- Every API call first adopts any newer data another tab saved (a small revision counter in `localStorage`), and
+  every change is saved immediately. One tab therefore never silently overwrites another tab's change, and a
+  failed operation is rolled back completely (`createDemoSync`, `createRunner` in `packages/shared/src/mock`).
+- This is **one browser on one device**. Different browsers, devices or phones each have their own demo data;
+  nothing is synchronised between them. There is no server, no real-time push and no conflict resolution beyond
+  "latest saved state wins at the start of each call".
+- The customer and professional roles share one sign-in per browser (the mobile app's preferences). Signing in as
+  the professional in one tab means a reloaded customer tab also opens as the professional — use one tab per role
+  without reloading, or switch accounts.
+- On a phone (Expo Go / a build), the app keeps its demo data in a local file; it cannot see the dashboard's data.
+- Demo data is regenerated after 12 hours, or via **Account → Reset demo data** / **Admin → Settings → Reset**.
 
 ## Demo accounts (simulated)
 
@@ -105,3 +124,5 @@ Screens depend only on the `MyHomeApi` interface (`packages/shared/src/api/contr
 - [x] Stage 5 — customer account: personal details, notification preferences, security, simulated wallet statement, notifications inbox (filters, grouping, deep links), simulated chat with professionals and customer-care requests; reload-safe checkout and current-slot marking when rescheduling
 - [x] Stage 6 — professional app: dashboard with attention list, job requests with accept/decline, job workflow (travel → arrival → service → completion) with notes, demo photos and extra charges, schedule with arrival windows, availability editor, earnings and simulated payouts, reviews, documents and messages; changes sync to the customer app
 - [x] Stage 7 — admin dashboard: overview with live KPIs, charts and alerts; bookings (URL filters, eligible assignment, legal status moves, cancellation with simulated refund); customers, professionals (document review, approval only when every document is verified) and companies; categories, services (content, image, visibility, pricing with live preview), zones and coupons; review moderation; simulated payouts; support tickets; settings and alert preferences — English/Arabic RTL, light/dark, desktop to phone
+- [x] Stage 8 — integration hardening: cross-tab demo data that never overwrites another tab's change, all-or-nothing writes, suspended companies get no jobs, extra-charge and document-rejection confirmations, admin route code splitting, per-icon imports in the mobile bundle
+- [x] Stage 9 — release polish: Expo SDK 58 patch updates, WCAG AA text contrast across both themes (checked by a palette test), Arabic phone numbers and references kept left-to-right, touch-target and keyboard fixes

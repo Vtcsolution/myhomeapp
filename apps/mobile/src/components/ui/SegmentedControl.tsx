@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useTheme } from '@/providers/ThemeProvider';
 import { radius, space } from '@/theme/tokens';
 import { hapticSelection, PressableScale } from './Pressable';
@@ -25,6 +25,9 @@ export function SegmentedControl<T extends string>({
   size = 'md',
 }: SegmentedControlProps<T>) {
   const { colors, scheme } = useTheme();
+  const { width } = useWindowDimensions();
+  // Small phones (320–359 pt) and four or more segments need every point for the labels.
+  const tight = segments.length > 3 || width < 360;
   return (
     <View
       accessibilityRole="tablist"
@@ -48,8 +51,7 @@ export function SegmentedControl<T extends string>({
             style={[
               styles.segment,
               size === 'sm' && styles.segmentSmall,
-              // Four or more segments need the room for their labels on narrow phones.
-              segments.length > 3 && styles.segmentTight,
+              tight && styles.segmentTight,
               selected && {
                 backgroundColor: colors.surface,
                 boxShadow: scheme === 'light' ? '0px 2px 8px rgba(15, 29, 43, 0.08)' : undefined,
@@ -58,7 +60,7 @@ export function SegmentedControl<T extends string>({
           >
             <Text
               variant={size === 'sm' ? 'captionStrong' : 'calloutStrong'}
-              tone={selected ? 'primary' : 'muted'}
+              tone={selected ? 'primary' : 'secondary'}
               align="center"
               numberOfLines={1}
             >

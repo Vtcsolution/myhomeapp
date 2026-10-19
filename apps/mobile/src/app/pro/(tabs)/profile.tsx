@@ -6,7 +6,14 @@ import {
   weekdayName,
 } from '@myhome/shared';
 import { router } from 'expo-router';
-import { Bell, BellRing, CalendarClock, FileText, MessagesSquare, Star } from 'lucide-react-native';
+import {
+  Bell,
+  BellRing,
+  CalendarClock,
+  FileText,
+  MessagesSquare,
+  Star,
+} from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import {
   PreferencesSection,

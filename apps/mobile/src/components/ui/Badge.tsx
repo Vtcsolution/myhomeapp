@@ -16,9 +16,9 @@ export function Badge({ label, tone = 'neutral', dot }: BadgeProps) {
   const palette: Record<StatusTone, { bg: string; fg: string }> = {
     neutral: { bg: colors.surfaceMuted, fg: colors.textSecondary },
     info: { bg: colors.infoSoft, fg: colors.info },
-    accent: { bg: colors.accentSoft, fg: colors.accent },
-    success: { bg: colors.successSoft, fg: colors.success },
-    warning: { bg: colors.warningSoft, fg: colors.warning },
+    accent: { bg: colors.accentSoft, fg: colors.accentText },
+    success: { bg: colors.successSoft, fg: colors.successText },
+    warning: { bg: colors.warningSoft, fg: colors.warningText },
     danger: { bg: colors.dangerSoft, fg: colors.danger },
   };
   const { bg, fg } = palette[tone];

@@ -1,4 +1,4 @@
-import { Search, X } from 'lucide-react-native';
+import { Search, X } from '@/components/ui/icons';
 import { type ComponentRef, forwardRef } from 'react';
 import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 import { useLocale } from '@/providers/LocaleProvider';

@@ -13,7 +13,7 @@
     "email": "care@myhome.demo",
     "hours": {
       "en": "Every day, 8:00 AM – 10:00 PM",
-      "ar": "يومياً، من ٨ صباحاً حتى ١٠ مساءً"
+      "ar": "يومياً، من 8 صباحاً حتى 10 مساءً"
     }
   },
   "website": "https://myhome.demo",
@@ -25,15 +25,18 @@
       "accent": "#B8935A",
       "accentSoft": "#F3EADB",
       "onAccent": "#1B1408",
+      "accentText": "#7D5F2E",
       "background": "#F8F5F0",
       "surface": "#FFFFFF",
       "surfaceMuted": "#F1ECE4",
       "border": "#E6DFD4",
       "textPrimary": "#141A21",
       "textSecondary": "#4A5360",
-      "textMuted": "#8A919B",
+      "textMuted": "#626973",
       "success": "#2E7D5B",
+      "successText": "#1F5C42",
       "warning": "#B7791F",
+      "warningText": "#8F5E12",
       "danger": "#B3423A",
       "info": "#2F5D8A"
     },
@@ -44,15 +47,18 @@
       "accent": "#D9BC8A",
       "accentSoft": "#2A2418",
       "onAccent": "#12100C",
+      "accentText": "#D9BC8A",
       "background": "#0B1219",
       "surface": "#121C26",
       "surfaceMuted": "#18242F",
       "border": "#243341",
       "textPrimary": "#F3EFE8",
       "textSecondary": "#B9C0C8",
-      "textMuted": "#7D8792",
+      "textMuted": "#87919C",
       "success": "#5BB38B",
+      "successText": "#5BB38B",
       "warning": "#E0A94A",
+      "warningText": "#E0A94A",
       "danger": "#E07A70",
       "info": "#7AA6D1"
     }

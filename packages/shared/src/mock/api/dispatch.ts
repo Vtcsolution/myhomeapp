@@ -7,12 +7,22 @@ import type { Booking, ID, Technician, UserRole } from '../../types';
 import { DEMO_ACCOUNTS } from '../data/people';
 import { findService, type MockContext, notify, simulatedReference, touch } from './context';
 
-/** Active technicians who cover the booking's category and governorate. */
+/** A technician's company (if any) must be active for them to work. */
+export function companyAllowsWork(ctx: MockContext, technician: Technician): boolean {
+  if (!technician.vendorId) return true;
+  return ctx.state.vendors.find((v) => v.id === technician.vendorId)?.status === 'active';
+}
+
+/**
+ * Active technicians who cover the booking's category and governorate and
+ * whose company (if any) is active.
+ */
 export function eligibleTechnicians(ctx: MockContext, categoryId: ID, areaId: ID): Technician[] {
   const governorate = getArea(areaId)?.governorateId;
   return ctx.state.technicians.filter(
     (t) =>
       t.status === 'active' &&
+      companyAllowsWork(ctx, t) &&
       t.categoryIds.includes(categoryId) &&
       governorate !== undefined &&
       t.governorateIds.includes(governorate),

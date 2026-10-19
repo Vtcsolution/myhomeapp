@@ -67,48 +67,52 @@ export function createAuthApi(ctx: MockContext, run: Runner): AuthApi {
       }),
 
     verifyOtp: (requestId, code) =>
-      run.write(() => {
-        const record = ctx.state.otpRequests.find((o) => o.id === requestId);
-        if (
-          !record ||
-          record.used ||
-          toMs(record.expiresAt) < ctx.now() ||
-          record.attempts >= MAX_ATTEMPTS
-        ) {
-          throw new ApiError('OTP_EXPIRED', 'This code has expired. Please request a new one.');
-        }
-        if (code.trim() !== record.code) {
-          record.attempts += 1;
-          throw new ApiError('OTP_INVALID', 'The code you entered is incorrect.', {
-            attemptsLeft: MAX_ATTEMPTS - record.attempts,
-          });
-        }
-        record.used = true;
+      run.write(
+        () => {
+          const record = ctx.state.otpRequests.find((o) => o.id === requestId);
+          if (
+            !record ||
+            record.used ||
+            toMs(record.expiresAt) < ctx.now() ||
+            record.attempts >= MAX_ATTEMPTS
+          ) {
+            throw new ApiError('OTP_EXPIRED', 'This code has expired. Please request a new one.');
+          }
+          if (code.trim() !== record.code) {
+            record.attempts += 1;
+            throw new ApiError('OTP_INVALID', 'The code you entered is incorrect.', {
+              attemptsLeft: MAX_ATTEMPTS - record.attempts,
+            });
+          }
+          record.used = true;
 
-        if (record.role === 'technician') {
-          const technician = ctx.state.technicians.find((t) => t.phone === record.phone);
-          if (!technician) throw new ApiError('NOT_REGISTERED', 'This number is not registered.');
-          return startSession('technician', technician.id, false);
-        }
+          if (record.role === 'technician') {
+            const technician = ctx.state.technicians.find((t) => t.phone === record.phone);
+            if (!technician) throw new ApiError('NOT_REGISTERED', 'This number is not registered.');
+            return startSession('technician', technician.id, false);
+          }
 
-        let customer = ctx.state.customers.find((c) => c.phone === record.phone);
-        const isNew = !customer;
-        if (!customer) {
-          customer = {
-            id: ctx.nextId('cus'),
-            fullName: '',
-            phone: record.phone,
-            preferredLocale: 'en',
-            membership: 'classic',
-            addresses: [],
-            walletBalance: 0,
-            status: 'active',
-            createdAt: ctx.nowISO(),
-          };
-          ctx.state.customers.push(customer);
-        }
-        return startSession('customer', customer.id, isNew || !customer.fullName);
-      }),
+          let customer = ctx.state.customers.find((c) => c.phone === record.phone);
+          const isNew = !customer;
+          if (!customer) {
+            customer = {
+              id: ctx.nextId('cus'),
+              fullName: '',
+              phone: record.phone,
+              preferredLocale: 'en',
+              membership: 'classic',
+              addresses: [],
+              walletBalance: 0,
+              status: 'active',
+              createdAt: ctx.nowISO(),
+            };
+            ctx.state.customers.push(customer);
+          }
+          return startSession('customer', customer.id, isNew || !customer.fullName);
+        },
+        // A wrong code still counts as an attempt (the limit must survive the error).
+        { commitOnError: true },
+      ),
 
     adminSignIn: (email, password) =>
       run.write(() => {

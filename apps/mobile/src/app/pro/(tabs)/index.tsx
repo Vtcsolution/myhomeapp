@@ -8,7 +8,7 @@ import {
   CalendarCheck,
   Navigation,
   Power,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { JobCard } from '@/components/pro/JobCard';
 import { OnlineToggle } from '@/components/pro/OnlineToggle';

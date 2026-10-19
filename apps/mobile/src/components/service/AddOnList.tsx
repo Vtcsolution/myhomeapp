@@ -1,5 +1,5 @@
 import type { ServiceAddOn } from '@myhome/shared';
-import { Check } from 'lucide-react-native';
+import { Check } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { hapticSelection, PressableScale } from '@/components/ui/Pressable';
 import { Text } from '@/components/ui/Text';

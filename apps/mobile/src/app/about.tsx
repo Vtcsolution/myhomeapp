@@ -1,6 +1,6 @@
 import { brand, formatKuwaitPhone } from '@myhome/shared';
 import Constants from 'expo-constants';
-import { Image as ImageIcon, Info, Mail, Phone, Type } from 'lucide-react-native';
+import { Image as ImageIcon, Info, Mail, Phone, Type } from '@/components/ui/icons';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Wordmark } from '@/components/brand/Wordmark';
 import { SectionLabel } from '@/components/account/SettingsSections';

@@ -1,6 +1,6 @@
 import { brand, ticketCategoryLabels } from '@myhome/shared';
 import { router } from 'expo-router';
-import { Clock3, LifeBuoy, Mail, MessagesSquare, Phone, Plus } from 'lucide-react-native';
+import { Clock3, LifeBuoy, Mail, MessagesSquare, Phone, Plus } from '@/components/ui/icons';
 import { Linking, StyleSheet, View } from 'react-native';
 import { categoryIcon, TICKET_CATEGORIES, TicketCard } from '@/components/support/SupportParts';
 import { Badge } from '@/components/ui/Badge';

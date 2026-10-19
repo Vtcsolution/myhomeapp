@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Info, MapPin, PencilLine, SearchX } from 'lucide-react-native';
+import { Info, MapPin, PencilLine, SearchX } from '@/components/ui/icons';
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { PriceSummary } from '@/components/service/PriceSummary';

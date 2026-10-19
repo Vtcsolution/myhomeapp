@@ -574,9 +574,13 @@ export function createAdminApi(ctx: MockContext, run: Runner): AdminApi {
         const vendor = findVendor(ctx, id);
         vendor.status = status;
         if (status !== 'active') {
-          ctx.state.technicians
-            .filter((t) => t.vendorId === id)
-            .forEach((t) => (t.isOnline = false));
+          const members = ctx.state.technicians.filter((t) => t.vendorId === id);
+          members.forEach((t) => (t.isOnline = false));
+          // Open job offers to the company's professionals are withdrawn.
+          const memberIds = new Set(members.map((t) => t.id));
+          ctx.state.bookings
+            .filter((b) => b.status === 'pending')
+            .forEach((b) => (b.offeredTo = b.offeredTo.filter((tid) => !memberIds.has(tid))));
         }
         return vendorRow(vendor);
       }),

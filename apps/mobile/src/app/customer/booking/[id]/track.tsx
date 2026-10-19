@@ -1,6 +1,6 @@
 import { addressTitle, type BookingStatus } from '@myhome/shared';
 import { useLocalSearchParams } from 'expo-router';
-import { Car, FlaskConical, House, MapPin, SearchX } from 'lucide-react-native';
+import { Car, FlaskConical, House, MapPin, SearchX } from '@/components/ui/icons';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {

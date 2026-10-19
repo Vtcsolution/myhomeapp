@@ -8,7 +8,7 @@ import {
   toKuwaitParts,
   weekdayOfLocalDate,
 } from '@myhome/shared';
-import { CalendarX2, Info } from 'lucide-react-native';
+import { CalendarX2, Info } from '@/components/ui/icons';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { hapticSelection, PressableScale } from '@/components/ui/Pressable';
 import { Skeleton } from '@/components/ui/Skeleton';

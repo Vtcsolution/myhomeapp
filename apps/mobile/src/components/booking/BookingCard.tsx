@@ -4,7 +4,7 @@ import {
   bookingStatusTone,
   isLiveStatus,
 } from '@myhome/shared';
-import { CalendarClock, UserRound } from 'lucide-react-native';
+import { CalendarClock, UserRound } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';

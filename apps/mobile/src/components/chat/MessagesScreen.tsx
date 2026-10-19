@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { MessagesSquare } from 'lucide-react-native';
+import { MessagesSquare } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { Avatar } from '@/components/ui/Avatar';
 import { Card } from '@/components/ui/Card';

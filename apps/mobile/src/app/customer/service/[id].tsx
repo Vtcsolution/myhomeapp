@@ -6,7 +6,7 @@ import {
   type Service,
 } from '@myhome/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { BadgeCheck, Check, Clock, Receipt, SearchX, Star, X } from 'lucide-react-native';
+import { BadgeCheck, Check, Clock, Receipt, SearchX, Star, X } from '@/components/ui/icons';
 import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SERVICE_CARD_WIDTH, ServiceCard } from '@/components/catalog/ServiceCard';

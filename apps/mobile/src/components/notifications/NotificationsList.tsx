@@ -11,7 +11,7 @@ import {
   MessageSquareText,
   Receipt,
   Settings2,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button } from '@/components/ui/Button';

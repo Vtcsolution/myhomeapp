@@ -1,4 +1,4 @@
-import { TicketPercent } from 'lucide-react-native';
+import { TicketPercent } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { OfferCard } from '@/components/offers/OfferCard';
 import { ScreenHeader } from '@/components/ui/Headers';

@@ -1,3 +1,5 @@
+import { isolateLtrRuns } from '@myhome/shared';
+import type { ReactNode } from 'react';
 import {
   Platform,
   Text as RNText,
@@ -28,11 +30,19 @@ const toneColor = (colors: ThemeColors, tone: TextTone): string =>
     primary: colors.textPrimary,
     secondary: colors.textSecondary,
     muted: colors.textMuted,
-    accent: colors.accent,
+    accent: colors.accentText,
     inverse: colors.onMidnight,
     danger: colors.danger,
-    success: colors.success,
+    success: colors.successText,
   })[tone];
+
+/** In Arabic, phone numbers and references keep their left-to-right order. */
+const isolateRuns = (node: ReactNode): ReactNode =>
+  typeof node === 'string'
+    ? isolateLtrRuns(node)
+    : Array.isArray(node)
+      ? node.map(isolateRuns)
+      : node;
 
 /**
  * Typography primitive. Picks the right family for the active language,
@@ -44,6 +54,7 @@ export function Text({
   align = 'start',
   natural = false,
   style,
+  children,
   ...rest
 }: TextProps) {
   const { locale, isRTL } = useLocale();
@@ -65,6 +76,8 @@ export function Text({
         },
         style,
       ]}
-    />
+    >
+      {isRTL && !natural ? isolateRuns(children) : children}
+    </RNText>
   );
 }

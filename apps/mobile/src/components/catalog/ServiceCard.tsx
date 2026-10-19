@@ -1,5 +1,5 @@
 import { type Service, startingPrice } from '@myhome/shared';
-import { Star } from 'lucide-react-native';
+import { Star } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { Card } from '@/components/ui/Card';
 import { Photo } from '@/components/ui/Photo';

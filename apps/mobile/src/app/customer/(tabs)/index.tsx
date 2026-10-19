@@ -9,7 +9,7 @@ import {
   Receipt,
   Search,
   ShieldCheck,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { LiveBookingCard } from '@/components/booking/LiveBookingCard';
 import { CategoryCard } from '@/components/catalog/CategoryCard';
@@ -108,6 +108,8 @@ export default function CustomerHome() {
       <PressableScale
         onPress={() => router.push(customerRoutes.addresses)}
         accessibilityLabel={address ? f.address(address, 'full') : t('home.addressFallback')}
+        // The chip is 20 pt tall; extend the touch area to 44 pt.
+        hitSlop={12}
         style={styles.address}
       >
         <MapPin size={16} color={colors.accent} strokeWidth={1.75} />
@@ -270,7 +272,7 @@ export default function CustomerHome() {
           ).map(([Icon, title, body]) => (
             <View key={title} style={styles.promise}>
               <View style={[styles.promiseIcon, { borderColor: colors.accent }]}>
-                <Icon size={18} color={colors.accent} strokeWidth={1.6} />
+                <Icon size={18} color={colors.accent} strokeWidth={1.75} />
               </View>
               <View style={styles.promiseText}>
                 <Text variant="bodyStrong">{t(title)}</Text>

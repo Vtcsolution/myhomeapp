@@ -1,4 +1,4 @@
-import { CircleCheck, Info } from 'lucide-react-native';
+import { CircleCheck, Info } from '@/components/ui/icons';
 import {
   createContext,
   type ReactNode,

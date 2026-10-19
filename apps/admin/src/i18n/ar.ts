@@ -77,6 +77,7 @@ export const ar: Translations<typeof en> = {
     console: 'العمليات',
     footer: 'نسخة تجريبية · جميع البيانات محاكاة',
     main: 'التنقل الرئيسي',
+    skip: 'الانتقال إلى المحتوى',
   },
   topbar: {
     search: 'ابحث في الحجوزات برقم المرجع أو العميل أو الخدمة',
@@ -406,6 +407,8 @@ export const ar: Translations<typeof en> = {
       other: '{count} مهمة مكتملة',
     },
     experienceLabel: 'الخبرة',
+    rejectTitle: 'رفض {document}؟',
+    rejectBody: 'سيُطلب من المحترف إعادة تقديمه (محاكاة). لا يمكن اعتماده قبل التحقق منه.',
   },
   vendors: {
     title: 'الشركات',

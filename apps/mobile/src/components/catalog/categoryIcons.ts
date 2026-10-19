@@ -11,7 +11,7 @@ import {
   WashingMachine,
   Wrench,
   Zap,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 
 /** Maps the data layer's semantic icon names to one consistent line-icon set. */
 export const categoryIcons: Record<CategoryIcon, LucideIcon> = {

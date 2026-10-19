@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Clock, SearchX, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, Clock, SearchX, Sparkles } from '@/components/ui/icons';
 import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

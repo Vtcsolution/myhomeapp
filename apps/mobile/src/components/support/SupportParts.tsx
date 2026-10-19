@@ -12,7 +12,7 @@ import {
   Receipt,
   Smartphone,
   UserRound,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';

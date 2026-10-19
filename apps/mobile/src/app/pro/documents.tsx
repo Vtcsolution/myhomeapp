@@ -4,7 +4,7 @@ import {
   documentTypeLabels,
   type TechnicianDocument,
 } from '@myhome/shared';
-import { FileCheck2, FileText, Upload } from 'lucide-react-native';
+import { FileCheck2, FileText, Upload } from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Badge } from '@/components/ui/Badge';

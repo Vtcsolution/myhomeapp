@@ -25,7 +25,7 @@ import {
   type LucideIcon,
   Building2,
 } from 'lucide-react';
-import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type FormEvent, type ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAdminProfile, useDashboard } from '@/data/queries';
 import type { TKey } from '@/i18n';
@@ -34,6 +34,7 @@ import { useLocale } from '@/providers/LocaleProvider';
 import { useSession } from '@/providers/SessionProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { readPreferences } from '@/services/preferences';
+import { PageFallback } from '../PageFallback';
 import { ConfirmDialog, IconButton } from '../ui';
 
 interface NavItem {
@@ -118,6 +119,13 @@ export function AdminLayout() {
     setNavPath(location.pathname);
     setNavOpen(false);
   }
+  // Escape closes the drawer, as it does the menus.
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setNavOpen(false);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [navOpen]);
 
   const alerts = dashboard.data ? buildAlerts(dashboard.data, readPreferences().alerts) : [];
   const alertTotal = alerts.reduce((s, a) => s + a.count, 0);
@@ -137,6 +145,9 @@ export function AdminLayout() {
 
   return (
     <div className="shell" data-nav-open={navOpen}>
+      <a className="skip-link" href="#main">
+        {t('nav.skip')}
+      </a>
       <aside className="sidebar" aria-label={t('nav.main')}>
         <Link to="/" className="sidebar__brand">
           <span className="monogram" aria-hidden>
@@ -280,8 +291,10 @@ export function AdminLayout() {
             </div>
           </div>
         </header>
-        <main id="main">
-          <Outlet />
+        <main id="main" tabIndex={-1}>
+          <Suspense fallback={<PageFallback />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 

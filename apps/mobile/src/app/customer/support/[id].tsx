@@ -1,6 +1,6 @@
 import { isApiError, ticketCategoryLabels } from '@myhome/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { CalendarCheck, SearchX } from 'lucide-react-native';
+import { CalendarCheck, SearchX } from '@/components/ui/icons';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { type BubbleMessage, Composer, MessageBubble } from '@/components/chat/Conversation';
 import { TicketStatusBadge } from '@/components/support/SupportParts';

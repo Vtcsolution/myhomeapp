@@ -35,6 +35,12 @@ export interface MockApiOptions {
   simulatedReplyAfterSec?: number | null;
   /** Called after every state change — hook for persistence. */
   onChange?: (state: MockState) => void;
+  /**
+   * Returns a newer state written by another app or tab (shared demo
+   * storage), or undefined. Checked at the start of every call so a change is
+   * always applied to the latest data and never overwrites someone else's.
+   */
+  pullExternal?: () => MockState | undefined;
 }
 
 export interface MockApi extends MyHomeApi {
@@ -78,9 +84,23 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
       options.simulatedReplyAfterSec === undefined ? 6 : options.simulatedReplyAfterSec,
   };
 
-  const run = createRunner({
+  const adopt = (state: MockState, keepSession: boolean) => {
+    const session = ctx.state.session;
+    ctx.state = cloneDeep(state);
+    if (keepSession) ctx.state.session = session;
+  };
+
+  const run = createRunner<MockState>({
     latency,
     failureRate: options.failureRate ?? 0,
+    refresh: () => {
+      const latest = options.pullExternal?.();
+      if (latest) adopt(latest, true);
+    },
+    snapshot: () => cloneDeep(ctx.state),
+    restore: (snapshot) => {
+      ctx.state = snapshot;
+    },
     beforeEach: () => {
       const session = ctx.state.session;
       let changed = false;
@@ -110,10 +130,6 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
       ctx.state = createSeedState({ now: now() });
       options.onChange?.(ctx.state);
     },
-    loadState: (state, { keepSession = true } = {}) => {
-      const session = ctx.state.session;
-      ctx.state = cloneDeep(state);
-      if (keepSession) ctx.state.session = session;
-    },
+    loadState: (state, { keepSession = true } = {}) => adopt(state, keepSession),
   };
 }

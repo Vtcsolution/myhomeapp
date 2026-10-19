@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Briefcase, CircleCheck } from 'lucide-react-native';
+import { Briefcase, CircleCheck } from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { JobCard } from '@/components/pro/JobCard';

@@ -1,6 +1,6 @@
 import { isApiError } from '@myhome/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { SearchX } from 'lucide-react-native';
+import { SearchX } from '@/components/ui/icons';
 import { useEffect, useRef } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { type BubbleMessage, Composer, MessageBubble } from '@/components/chat/Conversation';

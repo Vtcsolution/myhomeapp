@@ -1,6 +1,6 @@
 import { type Customer, isApiError, type Locale } from '@myhome/shared';
 import { router } from 'expo-router';
-import { Lock } from 'lucide-react-native';
+import { Lock } from '@/components/ui/icons';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { Avatar } from '@/components/ui/Avatar';

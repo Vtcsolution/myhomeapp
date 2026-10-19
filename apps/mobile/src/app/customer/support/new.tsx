@@ -1,6 +1,6 @@
 import { isApiError, type TicketCategory, ticketCategoryLabels } from '@myhome/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Send } from 'lucide-react-native';
+import { Send } from '@/components/ui/icons';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { categoryIcon, TICKET_CATEGORIES } from '@/components/support/SupportParts';

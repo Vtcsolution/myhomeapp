@@ -5,7 +5,7 @@ import {
   isLiveStatus,
   type JobView,
 } from '@myhome/shared';
-import { Clock, MapPin } from 'lucide-react-native';
+import { Clock, MapPin } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
@@ -87,7 +87,7 @@ export function JobCard({ job, onPress, featured }: JobCardProps) {
       >
         <Text
           variant="captionStrong"
-          style={{ color: featured ? colors.champagne : colors.accent }}
+          style={{ color: featured ? colors.champagne : colors.accentText }}
         >
           {t('pro.youEarn', { amount: f.money(job.technicianNet) })}
         </Text>

@@ -70,6 +70,7 @@ export const en = {
     console: 'Operations',
     footer: 'Demo build · all data is simulated',
     main: 'Main navigation',
+    skip: 'Skip to content',
   },
   topbar: {
     search: 'Search bookings by reference, customer or service',
@@ -355,6 +356,9 @@ export const en = {
     noReviews: 'No reviews yet.',
     completedJobs: { one: '{count} completed job', other: '{count} completed jobs' },
     experienceLabel: 'Experience',
+    rejectTitle: 'Reject the {document}?',
+    rejectBody:
+      'The professional is asked to submit it again (simulated). They cannot be approved until it is verified.',
   },
   vendors: {
     title: 'Companies',

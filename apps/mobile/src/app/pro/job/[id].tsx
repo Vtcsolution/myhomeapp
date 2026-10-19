@@ -23,7 +23,7 @@ import {
   Star,
   UserRound,
   X,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 import { useState } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import { StatusTimeline } from '@/components/booking/StatusTimeline';
@@ -228,7 +228,7 @@ export default function JobScreen() {
             <Text variant="caption" tone="muted">
               {t(j.status === 'completed' ? 'job.earnedLabel' : 'job.youEarn')}
             </Text>
-            <Text variant="title2" style={{ color: colors.accent }}>
+            <Text variant="title2" style={{ color: colors.accentText }}>
               {f.money(j.technicianNet)}
             </Text>
           </View>

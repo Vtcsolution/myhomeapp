@@ -1,5 +1,5 @@
 import type { Booking } from '@myhome/shared';
-import { Check, X } from 'lucide-react-native';
+import { Check, X } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useFormat } from '@/hooks/useFormat';

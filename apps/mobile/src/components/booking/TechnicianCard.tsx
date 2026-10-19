@@ -1,5 +1,5 @@
 import { brand, type TechnicianSummary } from '@myhome/shared';
-import { MessageSquareText, Phone, Star } from 'lucide-react-native';
+import { MessageSquareText, Phone, Star } from '@/components/ui/icons';
 import { router } from 'expo-router';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Avatar } from '@/components/ui/Avatar';

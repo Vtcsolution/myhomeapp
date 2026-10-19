@@ -1,4 +1,4 @@
-import { CloudOff, type LucideIcon } from 'lucide-react-native';
+import { CloudOff, type LucideIcon } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { useLocale } from '@/providers/LocaleProvider';
 import { useTheme } from '@/providers/ThemeProvider';

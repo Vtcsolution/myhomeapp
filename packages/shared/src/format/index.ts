@@ -3,6 +3,7 @@ export * from './money';
 export * from './phone';
 export * from './datetime';
 export * from './address';
+export * from './bidi';
 
 import type { Locale, LocalizedText } from '../types/common';
 

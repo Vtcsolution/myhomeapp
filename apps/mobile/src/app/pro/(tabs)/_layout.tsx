@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router/js-tabs';
-import { Briefcase, CalendarCheck, CircleUserRound, TrendingUp } from 'lucide-react-native';
+import { Briefcase, CalendarCheck, CircleUserRound, TrendingUp } from '@/components/ui/icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tabBarOptions, tabIconProps } from '@/components/navigation/tabBarOptions';
 import { useLocale } from '@/providers/LocaleProvider';

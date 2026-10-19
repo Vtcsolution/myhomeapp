@@ -1,5 +1,5 @@
 import { type Area, type GovernorateId, getArea, searchScore } from '@myhome/shared';
-import { Check, ChevronDown } from 'lucide-react-native';
+import { Check, ChevronDown } from '@/components/ui/icons';
 import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { PressableScale } from '@/components/ui/Pressable';

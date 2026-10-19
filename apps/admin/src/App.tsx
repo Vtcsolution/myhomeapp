@@ -1,27 +1,68 @@
+import { lazy } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { BookingDetailPage } from '@/pages/BookingDetailPage';
-import { BookingsPage } from '@/pages/BookingsPage';
-import { CategoriesPage } from '@/pages/CategoriesPage';
-import { CouponsPage } from '@/pages/CouponsPage';
-import { CustomerDetailPage } from '@/pages/CustomerDetailPage';
-import { CustomersPage } from '@/pages/CustomersPage';
-import { DashboardPage } from '@/pages/DashboardPage';
 import { LoginPage } from '@/pages/LoginPage';
-import { NotFoundPage } from '@/pages/NotFoundPage';
-import { PayoutsPage } from '@/pages/PayoutsPage';
-import { ReviewsPage } from '@/pages/ReviewsPage';
-import { ServiceDetailPage } from '@/pages/ServiceDetailPage';
-import { ServicesPage } from '@/pages/ServicesPage';
-import { SettingsPage } from '@/pages/SettingsPage';
-import { TechnicianDetailPage } from '@/pages/TechnicianDetailPage';
-import { TechniciansPage } from '@/pages/TechniciansPage';
-import { TicketDetailPage } from '@/pages/TicketDetailPage';
-import { TicketsPage } from '@/pages/TicketsPage';
-import { VendorDetailPage } from '@/pages/VendorDetailPage';
-import { VendorsPage } from '@/pages/VendorsPage';
-import { ZonesPage } from '@/pages/ZonesPage';
 import { useSession } from '@/providers/SessionProvider';
+
+// Each screen is its own chunk, loaded when first opened.
+const BookingDetailPage = lazy(() =>
+  import('@/pages/BookingDetailPage').then((m) => ({ default: m.BookingDetailPage })),
+);
+const BookingsPage = lazy(() =>
+  import('@/pages/BookingsPage').then((m) => ({ default: m.BookingsPage })),
+);
+const CategoriesPage = lazy(() =>
+  import('@/pages/CategoriesPage').then((m) => ({ default: m.CategoriesPage })),
+);
+const CouponsPage = lazy(() =>
+  import('@/pages/CouponsPage').then((m) => ({ default: m.CouponsPage })),
+);
+const CustomerDetailPage = lazy(() =>
+  import('@/pages/CustomerDetailPage').then((m) => ({ default: m.CustomerDetailPage })),
+);
+const CustomersPage = lazy(() =>
+  import('@/pages/CustomersPage').then((m) => ({ default: m.CustomersPage })),
+);
+const DashboardPage = lazy(() =>
+  import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })),
+);
+const NotFoundPage = lazy(() =>
+  import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })),
+);
+const PayoutsPage = lazy(() =>
+  import('@/pages/PayoutsPage').then((m) => ({ default: m.PayoutsPage })),
+);
+const ReviewsPage = lazy(() =>
+  import('@/pages/ReviewsPage').then((m) => ({ default: m.ReviewsPage })),
+);
+const ServiceDetailPage = lazy(() =>
+  import('@/pages/ServiceDetailPage').then((m) => ({ default: m.ServiceDetailPage })),
+);
+const ServicesPage = lazy(() =>
+  import('@/pages/ServicesPage').then((m) => ({ default: m.ServicesPage })),
+);
+const SettingsPage = lazy(() =>
+  import('@/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+);
+const TechnicianDetailPage = lazy(() =>
+  import('@/pages/TechnicianDetailPage').then((m) => ({ default: m.TechnicianDetailPage })),
+);
+const TechniciansPage = lazy(() =>
+  import('@/pages/TechniciansPage').then((m) => ({ default: m.TechniciansPage })),
+);
+const TicketDetailPage = lazy(() =>
+  import('@/pages/TicketDetailPage').then((m) => ({ default: m.TicketDetailPage })),
+);
+const TicketsPage = lazy(() =>
+  import('@/pages/TicketsPage').then((m) => ({ default: m.TicketsPage })),
+);
+const VendorDetailPage = lazy(() =>
+  import('@/pages/VendorDetailPage').then((m) => ({ default: m.VendorDetailPage })),
+);
+const VendorsPage = lazy(() =>
+  import('@/pages/VendorsPage').then((m) => ({ default: m.VendorsPage })),
+);
+const ZonesPage = lazy(() => import('@/pages/ZonesPage').then((m) => ({ default: m.ZonesPage })));
 
 function RequireAdmin() {
   const { session, status } = useSession();

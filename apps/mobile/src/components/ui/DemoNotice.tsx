@@ -1,4 +1,4 @@
-import { FlaskConical, type LucideIcon } from 'lucide-react-native';
+import { FlaskConical, type LucideIcon } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '@/providers/ThemeProvider';
 import { radius, space } from '@/theme/tokens';

@@ -506,6 +506,7 @@ export const en = {
     cancel: 'Cancel booking',
     help: 'Get help with this booking',
     extrasTitle: 'Additional work needs your approval',
+    extrasDoneTitle: 'Additional work',
     extrasBody:
       'Your professional found extra work on site. Nothing is done without your approval.',
     approve: 'Approve',
@@ -514,6 +515,10 @@ export const en = {
     declinedToast: 'Extra work declined',
     extraApproved: 'Approved',
     extraDeclined: 'Declined',
+    approveExtraTitle: 'Approve {amount} of extra work?',
+    approveExtraBody: '“{description}” will be added to your booking total (simulated payment).',
+    declineExtraTitle: 'Decline this extra work?',
+    declineExtraBody: '“{description}” will not be done. This cannot be undone.',
     cancelTitle: 'Cancel this booking?',
     cancelFree: 'Cancellation is free.',
     cancelFee: 'A fee of {fee} applies because your visit starts in less than {hours} hours.',

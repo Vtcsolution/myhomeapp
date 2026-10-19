@@ -17,7 +17,7 @@ import {
   NotebookPen,
   SearchX,
   CircleX,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {

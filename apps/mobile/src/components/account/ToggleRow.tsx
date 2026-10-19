@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react-native';
+import type { LucideIcon } from '@/components/ui/icons';
 import { StyleSheet, Switch, View } from 'react-native';
 import { hapticSelection, PressableScale } from '@/components/ui/Pressable';
 import { Text } from '@/components/ui/Text';

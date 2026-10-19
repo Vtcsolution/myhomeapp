@@ -1,6 +1,6 @@
 import type { Coupon } from '@myhome/shared';
 import * as Clipboard from 'expo-clipboard';
-import { Copy, TicketPercent } from 'lucide-react-native';
+import { Copy, TicketPercent } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { Card } from '@/components/ui/Card';
 import { hapticSelection, PressableScale } from '@/components/ui/Pressable';

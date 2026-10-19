@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowDownWideNarrow, SearchX } from 'lucide-react-native';
+import { ArrowDownWideNarrow, SearchX } from '@/components/ui/icons';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ServiceRow } from '@/components/catalog/ServiceRow';

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { RotateCcw } from 'lucide-react-native';
+import { RotateCcw } from '@/components/ui/icons';
 import { ScreenHeader } from '@/components/ui/Headers';
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/StateViews';

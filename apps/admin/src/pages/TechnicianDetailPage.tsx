@@ -7,6 +7,7 @@ import {
   kuwaitDateOf,
   kuwaitLocalToISO,
   spokenLanguageLabels,
+  type TechnicianDocument,
   type TechnicianStatus,
   technicianStatusLabels,
   weekdayName,
@@ -70,6 +71,7 @@ export function TechnicianDetailPage() {
   const setStatus = useSetTechnicianStatus();
   const reviewDocument = useReviewDocument();
   const [pending, setPending] = useState<TechnicianStatus | null>(null);
+  const [rejecting, setRejecting] = useState<TechnicianDocument | null>(null);
   const crumbs = [
     { label: t('nav.dashboard'), to: '/' },
     { label: t('technicians.title'), to: '/technicians' },
@@ -216,15 +218,7 @@ export function TechnicianDetailPage() {
                       size="sm"
                       variant="ghost"
                       icon={CircleX}
-                      onClick={() =>
-                        reviewDocument.mutate(
-                          { technicianId: tech.id, documentId: doc.id, status: 'rejected' },
-                          {
-                            onSuccess: () => show(t('technicians.rejectedToast')),
-                            onError: (e) => show(errorMessage(e), 'error'),
-                          },
-                        )
-                      }
+                      onClick={() => setRejecting(doc)}
                     >
                       {t('technicians.reject')}
                     </Button>
@@ -423,6 +417,32 @@ export function TechnicianDetailPage() {
         loading={setStatus.isPending}
         onCancel={() => setPending(null)}
         onConfirm={confirmStatus}
+      />
+      <ConfirmDialog
+        open={rejecting !== null}
+        title={
+          rejecting
+            ? t('technicians.rejectTitle', { document: f.text(documentTypeLabels[rejecting.type]) })
+            : ''
+        }
+        body={t('technicians.rejectBody')}
+        confirmLabel={t('technicians.reject')}
+        destructive
+        loading={reviewDocument.isPending}
+        onCancel={() => setRejecting(null)}
+        onConfirm={() =>
+          rejecting &&
+          reviewDocument.mutate(
+            { technicianId: tech.id, documentId: rejecting.id, status: 'rejected' },
+            {
+              onSuccess: () => {
+                setRejecting(null);
+                show(t('technicians.rejectedToast'));
+              },
+              onError: (e) => show(errorMessage(e), 'error'),
+            },
+          )
+        }
       />
     </div>
   );

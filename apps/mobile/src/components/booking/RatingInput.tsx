@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react-native';
+import { Star } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { hapticSelection, PressableScale } from '@/components/ui/Pressable';
 import { useLocale } from '@/providers/LocaleProvider';
@@ -9,14 +9,17 @@ import { space } from '@/theme/tokens';
 export function RatingInput({
   value,
   onChange,
+  label,
 }: {
   value: number;
   onChange: (rating: 1 | 2 | 3 | 4 | 5) => void;
+  /** Name of the group for screen readers (e.g. the question it answers). */
+  label: string;
 }) {
   const { colors } = useTheme();
   const { t } = useLocale();
   return (
-    <View style={styles.row} accessibilityRole="radiogroup">
+    <View style={styles.row} accessibilityRole="radiogroup" accessibilityLabel={label}>
       {([1, 2, 3, 4, 5] as const).map((n) => (
         <PressableScale
           key={n}

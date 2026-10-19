@@ -1,6 +1,6 @@
 import { addressTitle, paymentMethodLabels } from '@myhome/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { CalendarClock, Check, CreditCard, MapPin } from 'lucide-react-native';
+import { CalendarClock, Check, CreditCard, MapPin } from '@/components/ui/icons';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {

@@ -1,5 +1,5 @@
 import { type Href, router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft } from '@/components/ui/icons';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocale } from '@/providers/LocaleProvider';
@@ -65,7 +65,7 @@ export function SectionHeader({ title, actionLabel, onAction }: SectionHeaderPro
         {title}
       </Text>
       {actionLabel && onAction ? (
-        <PressableScale onPress={onAction} accessibilityLabel={actionLabel} hitSlop={8}>
+        <PressableScale onPress={onAction} accessibilityLabel={actionLabel} hitSlop={12}>
           <Text variant="calloutStrong" tone="accent">
             {actionLabel}
           </Text>

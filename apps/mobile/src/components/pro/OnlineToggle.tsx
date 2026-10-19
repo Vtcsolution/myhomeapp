@@ -20,6 +20,8 @@ export function OnlineToggle({
   return (
     <PressableScale
       haptic
+      // 36 pt pill; the touch area reaches 44 pt.
+      hitSlop={4}
       disabled={busy}
       onPress={onToggle}
       accessibilityRole="switch"
@@ -37,7 +39,7 @@ export function OnlineToggle({
       <View style={[styles.dot, { backgroundColor: online ? colors.success : colors.textMuted }]} />
       <Text
         variant="captionStrong"
-        style={{ color: online ? colors.success : colors.textSecondary }}
+        style={{ color: online ? colors.successText : colors.textSecondary }}
       >
         {online ? t('pro.online') : t('pro.offline')}
       </Text>

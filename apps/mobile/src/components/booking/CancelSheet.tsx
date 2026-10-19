@@ -1,5 +1,5 @@
 import { type BookingView, businessConfig } from '@myhome/shared';
-import { CircleAlert } from 'lucide-react-native';
+import { CircleAlert } from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button } from '@/components/ui/Button';

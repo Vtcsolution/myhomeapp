@@ -1,4 +1,4 @@
-import type { LucideIcon, LucideProps } from 'lucide-react-native';
+import type { LucideIcon, LucideProps } from '@/components/ui/icons';
 import { useLocale } from '@/providers/LocaleProvider';
 
 /** Renders a direction-sensitive icon (arrows, chevrons) mirrored in RTL. */

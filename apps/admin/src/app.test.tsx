@@ -53,6 +53,28 @@ describe('dashboard app', () => {
   });
 });
 
+describe('confirmations and keyboard access', () => {
+  it('asks before rejecting a document and changes nothing on cancel', async () => {
+    renderAt('/technicians?status=pending_approval');
+    const table = await screen.findByRole('table', {}, { timeout: 4000 });
+    fireEvent.click(within(table).getAllByRole('row')[1]!);
+    const rejects = await screen.findAllByRole('button', { name: 'Reject' }, { timeout: 4000 });
+    fireEvent.click(rejects[0]!);
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/is asked to submit it again/)).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByText('Document rejected')).toBeNull();
+  });
+
+  it('offers a skip link to the page content', async () => {
+    renderAt('/coupons');
+    const skip = await screen.findByRole('link', { name: 'Skip to content' }, { timeout: 4000 });
+    expect(skip.getAttribute('href')).toBe('#main');
+    expect(document.getElementById('main')?.tagName).toBe('MAIN');
+  });
+});
+
 describe('DataTable', () => {
   const rows = [
     { id: 'a', name: 'Alpha', value: 2 },

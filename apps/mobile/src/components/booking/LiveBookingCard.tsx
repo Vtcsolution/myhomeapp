@@ -1,5 +1,5 @@
 import type { BookingView } from '@myhome/shared';
-import { ArrowRight, Navigation } from 'lucide-react-native';
+import { ArrowRight, Navigation } from '@/components/ui/icons';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {

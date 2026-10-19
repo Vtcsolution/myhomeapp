@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react-native';
+import type { LucideIcon } from '@/components/ui/icons';
 import { ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '@/providers/ThemeProvider';
 import { gutter, radius, space } from '@/theme/tokens';

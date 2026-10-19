@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { MapPinned, Plus } from 'lucide-react-native';
+import { MapPinned, Plus } from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AddressCard } from '@/components/address/AddressCard';

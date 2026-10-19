@@ -1,4 +1,4 @@
-import { CalendarCheck, Gift, MessageSquareText, Receipt } from 'lucide-react-native';
+import { CalendarCheck, Gift, MessageSquareText, Receipt } from '@/components/ui/icons';
 import { useState } from 'react';
 import { ToggleRow } from '@/components/account/ToggleRow';
 import { DemoNotice } from '@/components/ui/DemoNotice';

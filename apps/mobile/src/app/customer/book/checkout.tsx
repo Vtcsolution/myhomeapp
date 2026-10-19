@@ -14,7 +14,7 @@ import {
   CircleAlert,
   MapPin,
   ShieldCheck,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { CouponField } from '@/components/booking/CouponField';
@@ -175,7 +175,7 @@ export default function BookCheckoutScreen() {
           >
             <CalendarCheck size={18} color={colors.success} strokeWidth={1.75} />
             <View style={styles.failureText}>
-              <Text variant="bodyStrong" style={{ color: colors.success }}>
+              <Text variant="bodyStrong" style={{ color: colors.successText }}>
                 {t('checkout.alreadyBookedTitle')}
               </Text>
               <Text variant="callout" tone="secondary">

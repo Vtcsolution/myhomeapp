@@ -8,7 +8,7 @@ import {
   weekdayName,
 } from '@myhome/shared';
 import { router } from 'expo-router';
-import { CalendarPlus, Minus, Plus, X } from 'lucide-react-native';
+import { CalendarPlus, Minus, Plus, X } from '@/components/ui/icons';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { Button } from '@/components/ui/Button';

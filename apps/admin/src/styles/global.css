@@ -64,6 +64,25 @@ textarea {
   outline-offset: 2px;
 }
 
+.skip-link {
+  position: fixed;
+  inset-block-start: 8px;
+  inset-inline-start: 8px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--midnight);
+  color: var(--on-midnight);
+  font-weight: 700;
+  transform: translateY(-160%);
+}
+.skip-link:focus {
+  transform: none;
+}
+#main:focus {
+  outline: none;
+}
+
 .visually-hidden {
   position: absolute !important;
   width: 1px;
@@ -137,7 +156,7 @@ html[lang='ar'] .overline {
   color: var(--danger);
 }
 .success-text {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 /* ── Shell ──────────────────────────────────────────────────────────────── */
@@ -203,7 +222,7 @@ html[lang='ar'] .sidebar__brand-name {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(251, 248, 243, 0.45);
+  color: rgba(251, 248, 243, 0.66);
   padding: 0 12px 6px;
 }
 html[lang='ar'] .nav-group__label {
@@ -454,7 +473,7 @@ html[lang='ar'] .kpi__value {
 }
 .notice--warning {
   background: var(--warning-soft);
-  color: var(--warning);
+  color: var(--warning-text);
 }
 .notice--danger {
   background: var(--danger-soft);
@@ -462,7 +481,7 @@ html[lang='ar'] .kpi__value {
 }
 .notice--success {
   background: var(--success-soft);
-  color: var(--success);
+  color: var(--success-text);
 }
 
 /* ── Controls ───────────────────────────────────────────────────────────── */
@@ -773,15 +792,15 @@ html[lang='ar'] .kpi__value {
 }
 .badge--accent {
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .badge--success {
   background: var(--success-soft);
-  color: var(--success);
+  color: var(--success-text);
 }
 .badge--warning {
   background: var(--warning-soft);
-  color: var(--warning);
+  color: var(--warning-text);
 }
 .badge--danger {
   background: var(--danger-soft);
@@ -1221,7 +1240,11 @@ html[lang='ar'] .table th {
     inset-inline-start: 0;
     width: min(300px, 86vw);
     transform: translateX(-100%);
-    transition: transform 220ms var(--ease);
+    /* Hidden (and out of the tab order) once the slide-out finishes. */
+    visibility: hidden;
+    transition:
+      transform 220ms var(--ease),
+      visibility 0s linear 220ms;
     box-shadow: 0 0 40px rgba(8, 14, 21, 0.3);
   }
   html[dir='rtl'] .sidebar {
@@ -1229,6 +1252,8 @@ html[lang='ar'] .table th {
   }
   .shell[data-nav-open='true'] .sidebar {
     transform: none;
+    visibility: visible;
+    transition: transform 220ms var(--ease);
   }
   .nav-scrim {
     position: fixed;
@@ -1276,6 +1301,14 @@ html[lang='ar'] .table th {
   .filters > .field--auto {
     max-width: none;
     flex-basis: 100%;
+  }
+  /* Options wrap instead of hiding behind a sideways scroll. */
+  .segmented {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .segmented button {
+    flex: 1 1 auto;
   }
   .hide-sm {
     display: none;

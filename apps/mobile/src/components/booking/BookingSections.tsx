@@ -1,5 +1,5 @@
 import { type BookingView, paymentMethodLabels } from '@myhome/shared';
-import { CircleCheck, CircleX, ShieldCheck, Star } from 'lucide-react-native';
+import { CircleCheck, CircleX, ShieldCheck, Star } from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { RatingInput } from '@/components/booking/RatingInput';
@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Photo } from '@/components/ui/Photo';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ConfirmDialog } from '@/components/ui/Dialog';
 import { Text } from '@/components/ui/Text';
 import { TextField } from '@/components/ui/TextField';
 import { useRespondToExtraCharge, useSubmitReview } from '@/data/queries';
@@ -26,7 +27,12 @@ export function ExtraChargesCard({ booking }: { booking: BookingView }) {
   const errorMessage = useErrorMessage();
   const respond = useRespondToExtraCharge();
   const [busy, setBusy] = useState<string | null>(null);
+  // Approving or declining changes the bill and cannot be undone — ask first.
+  const [asking, setAsking] = useState<{ chargeId: string; approve: boolean } | null>(null);
   if (booking.extraCharges.length === 0) return null;
+  const askingCharge = asking
+    ? booking.extraCharges.find((c) => c.id === asking.chargeId)
+    : undefined;
   const pending = booking.extraCharges.some((c) => c.status === 'pending_approval');
 
   const answer = (chargeId: string, approve: boolean) => {
@@ -44,7 +50,7 @@ export function ExtraChargesCard({ booking }: { booking: BookingView }) {
 
   return (
     <Card style={pending ? { borderColor: colors.warning } : undefined}>
-      <Text variant="title3">{t('booking.extrasTitle')}</Text>
+      <Text variant="title3">{t(pending ? 'booking.extrasTitle' : 'booking.extrasDoneTitle')}</Text>
       {pending ? (
         <Text variant="caption" tone="secondary" style={styles.extrasBody}>
           {t('booking.extrasBody')}
@@ -69,7 +75,7 @@ export function ExtraChargesCard({ booking }: { booking: BookingView }) {
                   style={styles.flex}
                   disabled={busy !== null}
                   loading={busy === `${charge.id}:false`}
-                  onPress={() => answer(charge.id, false)}
+                  onPress={() => setAsking({ chargeId: charge.id, approve: false })}
                 />
                 <Button
                   label={t('booking.approve')}
@@ -78,7 +84,7 @@ export function ExtraChargesCard({ booking }: { booking: BookingView }) {
                   style={styles.flex}
                   disabled={busy !== null}
                   loading={busy === `${charge.id}:true`}
-                  onPress={() => answer(charge.id, true)}
+                  onPress={() => setAsking({ chargeId: charge.id, approve: true })}
                 />
               </View>
             ) : (
@@ -92,6 +98,26 @@ export function ExtraChargesCard({ booking }: { booking: BookingView }) {
           </View>
         ))}
       </View>
+      <ConfirmDialog
+        visible={asking !== null && askingCharge !== undefined}
+        title={
+          asking?.approve
+            ? t('booking.approveExtraTitle', { amount: f.money(askingCharge?.amount ?? 0) })
+            : t('booking.declineExtraTitle')
+        }
+        body={
+          asking?.approve
+            ? t('booking.approveExtraBody', { description: askingCharge?.description ?? '' })
+            : t('booking.declineExtraBody', { description: askingCharge?.description ?? '' })
+        }
+        confirmLabel={asking?.approve ? t('booking.approve') : t('booking.decline')}
+        destructive={asking ? !asking.approve : false}
+        onCancel={() => setAsking(null)}
+        onConfirm={() => {
+          if (asking) answer(asking.chargeId, asking.approve);
+          setAsking(null);
+        }}
+      />
     </Card>
   );
 }
@@ -159,7 +185,7 @@ export function ReviewCard({
   const warranty = warrantyUntil ? (
     <View style={[styles.warranty, { backgroundColor: colors.successSoft }]}>
       <ShieldCheck size={16} color={colors.success} strokeWidth={1.75} />
-      <Text variant="caption" style={[styles.flex, { color: colors.success }]}>
+      <Text variant="caption" style={[styles.flex, { color: colors.successText }]}>
         {t('booking.warrantyUntil', { date: f.date(warrantyUntil, 'medium') })}
       </Text>
     </View>
@@ -202,7 +228,7 @@ export function ReviewCard({
       <Text variant="caption" tone="secondary" align="center" style={styles.rateBody}>
         {t('booking.rateBody')}
       </Text>
-      <RatingInput value={rating} onChange={setRating} />
+      <RatingInput value={rating} onChange={setRating} label={t('booking.rateTitle')} />
       {tried && rating === 0 ? (
         <Text variant="caption" tone="danger" align="center" style={styles.rateError}>
           {t('booking.ratingRequired')}

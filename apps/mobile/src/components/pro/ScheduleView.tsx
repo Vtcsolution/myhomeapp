@@ -9,7 +9,7 @@ import {
   toKuwaitParts,
 } from '@myhome/shared';
 import { router } from 'expo-router';
-import { CalendarOff, CalendarRange, Clock } from 'lucide-react-native';
+import { CalendarOff, CalendarRange, Clock } from '@/components/ui/icons';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { JobCard } from '@/components/pro/JobCard';
@@ -136,7 +136,7 @@ export function ScheduleView({
           ) : (
             <CalendarOff size={18} color={colors.textMuted} strokeWidth={1.75} />
           )}
-          <View style={styles.flex}>
+          <View style={styles.hoursText}>
             <Text variant="bodyStrong">
               {agenda.dayOff
                 ? t('schedule.dayOff')
@@ -234,6 +234,8 @@ const styles = StyleSheet.create({
   },
   dot: { width: 5, height: 5, borderRadius: 3, marginTop: 2 },
   hoursRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, flexWrap: 'wrap' },
+  // Keeps the hours readable; the button wraps below it on small phones instead.
+  hoursText: { flexGrow: 1, flexShrink: 1, flexBasis: 170 },
   section: { gap: space.md },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   window: {

@@ -1,6 +1,6 @@
 import { businessConfig, isApiError, kuwaitDateOf } from '@myhome/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { CalendarCheck, CalendarX2 } from 'lucide-react-native';
+import { CalendarCheck, CalendarX2 } from '@/components/ui/icons';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { type DateAvailability, SlotPicker } from '@/components/booking/SlotPicker';

@@ -1,5 +1,5 @@
 import type { ReviewView } from '@myhome/shared';
-import { Star } from 'lucide-react-native';
+import { Star } from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { Avatar } from '@/components/ui/Avatar';
 import { Card } from '@/components/ui/Card';

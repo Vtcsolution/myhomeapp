@@ -1,7 +1,7 @@
 import { isApiError, maskKuwaitPhone } from '@myhome/shared';
 import { useMutation } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { KeyRound } from 'lucide-react-native';
+import { KeyRound } from '@/components/ui/icons';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button } from '@/components/ui/Button';

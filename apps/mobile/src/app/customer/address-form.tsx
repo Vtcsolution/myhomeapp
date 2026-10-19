@@ -7,7 +7,7 @@ import {
   type PropertyType,
 } from '@myhome/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Check, Info } from 'lucide-react-native';
+import { Check, Info } from '@/components/ui/icons';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { AreaPicker } from '@/components/address/AreaPicker';

@@ -1,5 +1,5 @@
 import type { CouponResult } from '@myhome/shared';
-import { CircleAlert, CircleCheck, TicketPercent, X } from 'lucide-react-native';
+import { CircleAlert, CircleCheck, TicketPercent, X } from '@/components/ui/icons';
 import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
@@ -48,7 +48,7 @@ export function CouponField({
       >
         <CircleCheck size={18} color={colors.success} strokeWidth={1.75} />
         <View style={styles.flex}>
-          <Text variant="bodyStrong" style={{ color: colors.success, writingDirection: 'ltr' }}>
+          <Text variant="bodyStrong" style={{ color: colors.successText, writingDirection: 'ltr' }}>
             {result.code}
           </Text>
           <Text variant="caption" tone="secondary">

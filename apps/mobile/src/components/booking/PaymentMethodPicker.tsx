@@ -6,7 +6,7 @@ import {
   ShieldCheck,
   Smartphone,
   Wallet,
-} from 'lucide-react-native';
+} from '@/components/ui/icons';
 import { StyleSheet, View } from 'react-native';
 import { hapticSelection, PressableScale } from '@/components/ui/Pressable';
 import { Text } from '@/components/ui/Text';
