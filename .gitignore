@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Builds & caches
+dist/
+build/
+web-build/
+coverage/
+.expo/
+.vite/
+*.tsbuildinfo
+
+# Expo prebuild output (native projects are generated, not committed)
+android/
+ios/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs & OS files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
