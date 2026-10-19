@@ -23,6 +23,8 @@ export interface MockContext {
   /** Unique id with a readable prefix, e.g. `bkg-1042`. */
   nextId(prefix: string): string;
   config: BusinessConfig;
+  /** Seconds before a simulated chat/support reply; `null` disables them. */
+  replyDelaySec: number | null;
 }
 
 // ─── Guards ──────────────────────────────────────────────────────────────────
@@ -119,6 +121,7 @@ export function notify(
   title: LocalizedText,
   body: LocalizedText,
   bookingId?: ID,
+  links: { threadId?: ID; ticketId?: ID } = {},
 ): void {
   const notification: AppNotification = {
     id: ctx.nextId('ntf'),
@@ -130,6 +133,7 @@ export function notify(
     read: false,
     createdAt: ctx.nowISO(),
     ...(bookingId ? { bookingId } : {}),
+    ...links,
   };
   ctx.state.notifications.unshift(notification);
 }

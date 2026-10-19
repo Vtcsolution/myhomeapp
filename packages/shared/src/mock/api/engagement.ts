@@ -4,6 +4,7 @@ import { toMs } from '../../domain/time';
 import type { ChatThread, SupportTicket } from '../../types';
 import { findThread, type MockContext, requireSession, validation } from './context';
 import type { Runner } from './runner';
+import { scheduleReply } from './simulation';
 import { threadView } from './views';
 
 export function createNotificationsApi(ctx: MockContext, run: Runner): NotificationsApi {
@@ -86,8 +87,10 @@ export function createChatApi(ctx: MockContext, run: Runner): ChatApi {
         ctx.state.chatMessages.push(message);
         thread.lastMessageAt = message.createdAt;
         thread.lastMessagePreview = body;
-        if (role === 'customer') thread.unreadForTechnician += 1;
-        else thread.unreadForCustomer += 1;
+        if (role === 'customer') {
+          thread.unreadForTechnician += 1;
+          scheduleReply(ctx, 'chat', threadId);
+        } else thread.unreadForCustomer += 1;
         return message;
       }),
 
@@ -162,6 +165,7 @@ export function createSupportApi(ctx: MockContext, run: Runner): SupportApi {
           updatedAt: ctx.nowISO(),
         };
         ctx.state.tickets.unshift(ticket);
+        scheduleReply(ctx, 'ticket', ticket.id);
         return ticket;
       }),
 
@@ -178,6 +182,7 @@ export function createSupportApi(ctx: MockContext, run: Runner): SupportApi {
         });
         if (ticket.status === 'resolved' || ticket.status === 'closed') ticket.status = 'open';
         ticket.updatedAt = ctx.nowISO();
+        scheduleReply(ctx, 'ticket', ticket.id);
         return ticket;
       }),
   };

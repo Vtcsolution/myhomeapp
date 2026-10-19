@@ -5,9 +5,11 @@ import type {
   CustomerBookingsApi,
   QuoteRequest,
   TrackingInfo,
+  WalletView,
 } from '../../api/contracts';
 import { ApiError } from '../../api/errors';
 import { isCustomerCancellable, isLiveStatus, isUpcomingStatus } from '../../domain/bookingStatus';
+import { normalizeAddressDraft, validateAddress } from '../../domain/address';
 import {
   calculatePrice,
   evaluateCoupon,
@@ -16,8 +18,8 @@ import {
 } from '../../domain/pricing';
 import { bookableDates, computeSlots } from '../../domain/schedule';
 import { kuwaitDateOf, MINUTE_MS, toMs } from '../../domain/time';
+import { formatDate, formatTimeRange } from '../../format/datetime';
 import { formatMoney } from '../../format/money';
-import { getArea } from '../../geo/kuwait';
 import type {
   Address,
   Booking,
@@ -49,6 +51,12 @@ import { bookingView } from './views';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ARABIC_PATTERN = /[\u0600-\u06FF]/;
+
+/** Statement reference for a wallet movement, e.g. `wtx-123` → `WT-000123`. */
+function walletReference(id: string): string {
+  const digits = id.replace(/\D/g, '');
+  return `WT-${digits.padStart(6, '0')}`;
+}
 
 export function createCustomerBookingsApi(ctx: MockContext, run: Runner): CustomerBookingsApi {
   const activeService = (id: string): Service => {
@@ -165,6 +173,14 @@ export function createCustomerBookingsApi(ctx: MockContext, run: Runner): Custom
     create: (request) =>
       run.write(() => {
         const customer = currentCustomer(ctx);
+        // Idempotent retry: the same checkout attempt never creates two bookings.
+        const keys = (ctx.state.idempotencyKeys ??= {});
+        const key = request.idempotencyKey ? `${customer.id}:${request.idempotencyKey}` : undefined;
+        const previousId = key ? keys[key] : undefined;
+        const previous = previousId
+          ? ctx.state.bookings.find((b) => b.id === previousId)
+          : undefined;
+        if (previous) return bookingView(ctx, previous);
         if (!customer.fullName.trim()) validation('Please complete your profile before booking.');
         const service = activeService(request.serviceId);
         assertSelections(service, request.selections);
@@ -253,6 +269,7 @@ export function createCustomerBookingsApi(ctx: MockContext, run: Runner): Custom
           updatedAt: ctx.nowISO(),
         };
         ctx.state.bookings.push(booking);
+        if (key) keys[key] = booking.id;
         offerToTechnicians(ctx, booking);
         ctx.state.autoConfirmQueue.push(booking.id);
 
@@ -386,6 +403,29 @@ export function createCustomerBookingsApi(ctx: MockContext, run: Runner): Custom
           if (!ctx.state.autoConfirmQueue.includes(booking.id))
             ctx.state.autoConfirmQueue.push(booking.id);
         }
+        const when = formatDate(booking.scheduledStart, 'dayMonth');
+        const whenAr = formatDate(booking.scheduledStart, 'dayMonth', { locale: 'ar' });
+        const time = formatTimeRange(booking.scheduledStart, booking.scheduledEnd);
+        const timeAr = formatTimeRange(booking.scheduledStart, booking.scheduledEnd, {
+          locale: 'ar',
+        });
+        notify(
+          ctx,
+          'customer',
+          booking.customerId,
+          'booking_update',
+          { en: 'Booking rescheduled', ar: 'تم تغيير موعد الحجز' },
+          booking.status === 'pending'
+            ? {
+                en: `${booking.reference} moved to ${when}, ${time}. We're matching a professional for the new time.`,
+                ar: `تم نقل ${booking.reference} إلى ${whenAr}، ${timeAr}. نعمل على اختيار محترف للموعد الجديد.`,
+              }
+            : {
+                en: `${booking.reference} moved to ${when}, ${time}.`,
+                ar: `تم نقل ${booking.reference} إلى ${whenAr}، ${timeAr}.`,
+              },
+          booking.id,
+        );
         touch(ctx, booking);
         return bookingView(ctx, booking);
       }),
@@ -506,6 +546,24 @@ export function createCustomerBookingsApi(ctx: MockContext, run: Runner): Custom
 }
 
 export function createCustomerAccountApi(ctx: MockContext, run: Runner): CustomerAccountApi {
+  const walletView = (customer: Customer): WalletView => ({
+    balance: customer.walletBalance,
+    transactions: ctx.state.walletTransactions
+      .filter((t) => t.customerId === customer.id)
+      .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt))
+      .map((t) => {
+        const booking = t.bookingId
+          ? ctx.state.bookings.find((b) => b.id === t.bookingId)
+          : undefined;
+        return {
+          ...t,
+          reference: walletReference(t.id),
+          status: 'completed' as const,
+          ...(booking ? { bookingReference: booking.reference } : {}),
+        };
+      }),
+  });
+
   return {
     getProfile: () => run.read(() => currentCustomer(ctx)),
 
@@ -532,20 +590,15 @@ export function createCustomerAccountApi(ctx: MockContext, run: Runner): Custome
     saveAddress: (input) =>
       run.write(() => {
         const customer = currentCustomer(ctx);
-        if (!getArea(input.areaId)) validation('Please choose an area.');
-        for (const field of ['block', 'street', 'building'] as const) {
-          if (!input[field]?.trim()) validation(`Please enter the ${field}.`, { field });
-        }
+        const issues = validateAddress(input);
+        if (issues.length) validation('Please review the address details.', issues);
         const existing = input.id ? customer.addresses.find((a) => a.id === input.id) : undefined;
         if (input.id && !existing) throw new ApiError('NOT_FOUND', 'Address not found.');
         const makeDefault =
           input.isDefault ?? (existing?.isDefault || customer.addresses.length === 0);
         const address: Address = {
-          ...input,
+          ...normalizeAddressDraft(input),
           id: existing?.id ?? ctx.nextId('adr'),
-          block: input.block.trim(),
-          street: input.street.trim(),
-          building: input.building.trim(),
           isDefault: makeDefault,
         };
         if (makeDefault) customer.addresses.forEach((a) => (a.isDefault = false));
@@ -574,16 +627,7 @@ export function createCustomerAccountApi(ctx: MockContext, run: Runner): Custome
         return customer.addresses;
       }),
 
-    getWallet: () =>
-      run.read(() => {
-        const customer = currentCustomer(ctx);
-        return {
-          balance: customer.walletBalance,
-          transactions: ctx.state.walletTransactions
-            .filter((t) => t.customerId === customer.id)
-            .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt)),
-        };
-      }),
+    getWallet: () => run.read(() => walletView(currentCustomer(ctx))),
 
     topUpWallet: (amount, method) =>
       run.write(() => {
@@ -616,10 +660,7 @@ export function createCustomerAccountApi(ctx: MockContext, run: Runner): Custome
             ar: `تمت إضافة ${formatMoney(amount, { locale: 'ar' })} إلى محفظتك.`,
           },
         );
-        return {
-          balance: customer.walletBalance,
-          transactions: ctx.state.walletTransactions.filter((t) => t.customerId === customer.id),
-        };
+        return walletView(customer);
       }),
 
     listOffers: () =>

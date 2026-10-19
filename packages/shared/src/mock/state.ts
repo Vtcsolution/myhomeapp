@@ -54,6 +54,10 @@ export interface MockState {
   session: Session | null;
   /** Bookings created through the API that the simulation will confirm automatically. */
   autoConfirmQueue: ID[];
+  /** Demo replies the simulation will post (chat: the professional; ticket: customer care). */
+  simulatedReplies?: { kind: 'chat' | 'ticket'; targetId: ID; dueAt: ISODateTime }[];
+  /** Idempotency key → booking id for `bookings.create` (absent in older saved states). */
+  idempotencyKeys?: Record<string, ID>;
   /** Monotonic counter for generated ids and booking references. */
   sequence: number;
 }

@@ -1369,6 +1369,7 @@ export function createSeedState(options: SeedOptions = {}): MockState {
     otpRequests: [],
     session: null,
     autoConfirmQueue: [],
+    idempotencyKeys: {},
     sequence: 1_000,
   };
 }

@@ -27,6 +27,10 @@ export interface AppNotification {
   title: LocalizedText;
   body: LocalizedText;
   bookingId?: ID;
+  /** Conversation the notification is about (new chat message). */
+  threadId?: ID;
+  /** Support ticket the notification is about (agent reply). */
+  ticketId?: ID;
   read: boolean;
   createdAt: ISODateTime;
 }

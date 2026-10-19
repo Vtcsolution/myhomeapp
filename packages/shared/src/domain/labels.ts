@@ -2,7 +2,12 @@
 import { brand } from '../brand/brand.config';
 import type { BookingStatus, PaymentMethod, PaymentStatus } from '../types/booking';
 import type { LocalizedText } from '../types/common';
-import type { TicketPriority, TicketStatus } from '../types/engagement';
+import type {
+  TicketCategory,
+  TicketPriority,
+  TicketStatus,
+  WalletTransactionType,
+} from '../types/engagement';
 import type { DocumentStatus, MembershipTier, TechnicianStatus, VendorStatus } from '../types/user';
 
 export type StatusTone = 'neutral' | 'info' | 'accent' | 'success' | 'warning' | 'danger';
@@ -68,6 +73,28 @@ export const ticketStatusLabels: Record<TicketStatus, LocalizedText> = {
   in_progress: { en: 'In progress', ar: 'قيد المعالجة' },
   resolved: { en: 'Resolved', ar: 'تم الحل' },
   closed: { en: 'Closed', ar: 'مغلقة' },
+};
+
+export const ticketStatusTone: Record<TicketStatus, StatusTone> = {
+  open: 'info',
+  in_progress: 'accent',
+  resolved: 'success',
+  closed: 'neutral',
+};
+
+export const ticketCategoryLabels: Record<TicketCategory, LocalizedText> = {
+  booking: { en: 'A booking', ar: 'حجز' },
+  payment: { en: 'Payments & refunds', ar: 'المدفوعات والاسترداد' },
+  technician: { en: 'A professional', ar: 'محترف' },
+  app: { en: 'Using the app', ar: 'استخدام التطبيق' },
+  other: { en: 'Something else', ar: 'أمر آخر' },
+};
+
+export const walletTransactionLabels: Record<WalletTransactionType, LocalizedText> = {
+  top_up: { en: 'Top-up', ar: 'شحن' },
+  payment: { en: 'Payment', ar: 'دفع' },
+  refund: { en: 'Refund', ar: 'استرداد' },
+  cashback: { en: 'Cashback', ar: 'استرجاع نقدي' },
 };
 
 export const ticketPriorityLabels: Record<TicketPriority, LocalizedText> = {

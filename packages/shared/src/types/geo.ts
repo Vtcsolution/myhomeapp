@@ -38,6 +38,8 @@ export interface Address {
   apartment?: string;
   /** Kuwait PACI civil address number (optional). */
   paciNumber?: string;
+  /** Optional on-site contact, e.g. when booking for a relative (E.164). */
+  contactPhone?: string;
   directions?: string;
   location: GeoPoint;
   isDefault: boolean;

@@ -170,6 +170,12 @@ export interface CreateBookingRequest {
   paymentMethod: PaymentMethod;
   couponCode?: string;
   notes?: string;
+  /**
+   * Client-generated key for this checkout attempt. Repeating a request with
+   * the same key returns the original booking instead of creating a duplicate
+   * (maps to an `Idempotency-Key` header on the real backend).
+   */
+  idempotencyKey?: string;
 }
 
 export type BookingScope = 'upcoming' | 'active' | 'past' | 'all';
@@ -207,9 +213,19 @@ export interface CustomerBookingsApi {
 
 export type AddressInput = Omit<Address, 'id' | 'isDefault'> & { id?: ID; isDefault?: boolean };
 
+/** A wallet movement with what a statement needs. All wallet activity is simulated. */
+export interface WalletTransactionView extends WalletTransaction {
+  /** Statement reference, e.g. `WT-000123`. */
+  reference: string;
+  /** Booking reference when the movement belongs to a booking. */
+  bookingReference?: string;
+  /** Simulated movements settle instantly. */
+  status: 'completed';
+}
+
 export interface WalletView {
   balance: Fils;
-  transactions: WalletTransaction[];
+  transactions: WalletTransactionView[];
 }
 
 export interface CustomerAccountApi {

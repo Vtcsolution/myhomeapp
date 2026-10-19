@@ -11,6 +11,7 @@ import { createCustomerAccountApi, createCustomerBookingsApi } from './customer'
 import { runAutoConfirm } from './dispatch';
 import { createChatApi, createNotificationsApi, createSupportApi } from './engagement';
 import { createRunner } from './runner';
+import { runSimulatedReplies } from './simulation';
 import { createTechnicianApi } from './technician';
 
 export interface MockApiOptions {
@@ -27,6 +28,11 @@ export interface MockApiOptions {
    * offered technician. `null` disables the simulation. Default 20.
    */
   autoConfirmAfterSec?: number | null;
+  /**
+   * Seconds before the simulation answers a chat message or support request
+   * (clearly marked as automatic). `null` disables it. Default 6.
+   */
+  simulatedReplyAfterSec?: number | null;
   /** Called after every state change — hook for persistence. */
   onChange?: (state: MockState) => void;
 }
@@ -62,6 +68,8 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
       return `${prefix}-${sequence}`;
     },
     config: businessConfig,
+    replyDelaySec:
+      options.simulatedReplyAfterSec === undefined ? 6 : options.simulatedReplyAfterSec,
   };
 
   const run = createRunner({
@@ -74,7 +82,9 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
         ctx.state.session = null;
         changed = true;
       }
-      return runAutoConfirm(ctx, autoConfirmAfterSec) || changed;
+      const confirmed = runAutoConfirm(ctx, autoConfirmAfterSec);
+      const replied = runSimulatedReplies(ctx);
+      return confirmed || replied || changed;
     },
     onChange: () => options.onChange?.(ctx.state),
   });

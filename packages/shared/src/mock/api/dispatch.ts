@@ -205,6 +205,26 @@ export function cancelBooking(
       : { en: `${booking.reference} was cancelled.`, ar: `تم إلغاء ${booking.reference}.` },
     booking.id,
   );
+  if (refund > 0) {
+    const toWallet = booking.payment.method === 'wallet';
+    notify(
+      ctx,
+      'customer',
+      booking.customerId,
+      'payment',
+      { en: 'Refund processed (simulated)', ar: 'تمت معالجة الاسترداد (محاكاة)' },
+      toWallet
+        ? {
+            en: `${formatMoney(refund)} for ${booking.reference} was returned to your wallet.`,
+            ar: `تمت إعادة ${formatMoney(refund, { locale: 'ar' })} عن ${booking.reference} إلى محفظتك.`,
+          }
+        : {
+            en: `${formatMoney(refund)} for ${booking.reference} was refunded to your original payment method. No real money was moved.`,
+            ar: `تم استرداد ${formatMoney(refund, { locale: 'ar' })} عن ${booking.reference} إلى وسيلة الدفع الأصلية. لم تُنقل أي أموال حقيقية.`,
+          },
+      booking.id,
+    );
+  }
   if (booking.technicianId) {
     notify(
       ctx,
