@@ -2,7 +2,7 @@ import { type ComponentRef, forwardRef, useState } from 'react';
 import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 import { useLocale } from '@/providers/LocaleProvider';
 import { useTheme } from '@/providers/ThemeProvider';
-import { dirAttribute, directionStyle, noFocusRing } from '@/theme/direction';
+import { dirAttribute, directionStyle, noFocusRing, webInputMinFont } from '@/theme/direction';
 import { radius, space } from '@/theme/tokens';
 import { typeStyle } from '@/theme/typography';
 import { Text } from './Text';
@@ -68,6 +68,7 @@ export const TextField = forwardRef<ComponentRef<typeof TextInput>, TextFieldPro
                 textAlign: forceLtr ? 'left' : isRTL ? 'right' : 'left',
                 writingDirection: forceLtr ? 'ltr' : isRTL ? 'rtl' : 'ltr',
               },
+              webInputMinFont,
             ]}
           />
         </View>

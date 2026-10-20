@@ -9,7 +9,7 @@ import { useFormat } from '@/hooks/useFormat';
 import { couponFeedbackKey, normalizeCouponCode } from '@/lib/coupon';
 import { useLocale } from '@/providers/LocaleProvider';
 import { useTheme } from '@/providers/ThemeProvider';
-import { dirAttribute, directionStyle, noFocusRing } from '@/theme/direction';
+import { dirAttribute, directionStyle, noFocusRing, webInputMinFont } from '@/theme/direction';
 import { radius, space } from '@/theme/tokens';
 import { typeStyle } from '@/theme/typography';
 
@@ -103,6 +103,7 @@ export function CouponField({
               noFocusRing,
               typeStyle('bodyStrong', 'en'),
               { color: colors.textPrimary },
+              webInputMinFont,
             ]}
           />
         </View>

@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/Text';
 import { useFormat } from '@/hooks/useFormat';
 import { useLocale } from '@/providers/LocaleProvider';
 import { useTheme } from '@/providers/ThemeProvider';
-import { noFocusRing } from '@/theme/direction';
+import { noFocusRing, webInputMinFont } from '@/theme/direction';
 import { radius, space } from '@/theme/tokens';
 import { typeStyle } from '@/theme/typography';
 
@@ -120,6 +120,7 @@ export function Composer({
           noFocusRing,
           typeStyle('body', locale),
           { color: colors.textPrimary },
+          webInputMinFont,
         ]}
       />
       <PressableScale

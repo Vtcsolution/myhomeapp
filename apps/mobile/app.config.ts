@@ -8,6 +8,8 @@ import brand from '../../packages/shared/src/brand/brand.json';
 const config: ExpoConfig = {
   name: brand.name,
   slug: 'myhome',
+  // The EAS project (@greatodeal/myhome) belongs to the greatodeal organisation.
+  owner: 'greatodeal',
   scheme: 'myhome',
   version: '0.1.0',
   orientation: 'portrait',
@@ -59,6 +61,12 @@ const config: ExpoConfig = {
   ],
   experiments: {
     typedRoutes: true,
+  },
+  extra: {
+    // Links this app to its EAS project (EAS Build). Not a secret.
+    eas: {
+      projectId: 'b8fdf8c6-26f4-4491-98f6-2761434e0fc3',
+    },
   },
 };
 

@@ -26,3 +26,10 @@ export function dirAttribute(direction: Direction): Record<string, string> {
 export const noFocusRing: TextStyle = isWeb
   ? ({ outlineStyle: 'none' } as unknown as TextStyle)
   : {};
+
+/**
+ * iPhone Safari zooms the whole page when a text field under 16 px gains
+ * focus. Web inputs therefore never go below 16 px; native apps are unchanged.
+ * Place it last in an input's style array.
+ */
+export const webInputMinFont: TextStyle = isWeb ? { fontSize: 16 } : {};

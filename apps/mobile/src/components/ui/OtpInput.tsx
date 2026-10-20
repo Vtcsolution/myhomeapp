@@ -1,7 +1,7 @@
 import { type ComponentRef, useRef } from 'react';
 import { Pressable, StyleSheet, TextInput, type TextStyle, View } from 'react-native';
 import { useTheme } from '@/providers/ThemeProvider';
-import { dirAttribute, directionStyle, noFocusRing } from '@/theme/direction';
+import { dirAttribute, directionStyle, noFocusRing, webInputMinFont } from '@/theme/direction';
 import { radius, space } from '@/theme/tokens';
 import { Text } from './Text';
 
@@ -81,6 +81,7 @@ const hiddenInput: TextStyle = {
   height: '100%',
   opacity: 0.011,
   ...noFocusRing,
+  ...webInputMinFont,
 };
 
 const styles = StyleSheet.create({

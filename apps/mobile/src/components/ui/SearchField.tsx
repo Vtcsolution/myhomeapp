@@ -4,7 +4,7 @@ import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 import { useLocale } from '@/providers/LocaleProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { radius, space } from '@/theme/tokens';
-import { noFocusRing } from '@/theme/direction';
+import { noFocusRing, webInputMinFont } from '@/theme/direction';
 import { typeStyle } from '@/theme/typography';
 import { PressableScale } from './Pressable';
 
@@ -42,6 +42,7 @@ export const SearchField = forwardRef<ComponentRef<typeof TextInput>, SearchFiel
               textAlign: isRTL ? 'right' : 'left',
               writingDirection: isRTL ? 'rtl' : 'ltr',
             },
+            webInputMinFont,
           ]}
         />
         {value ? (
